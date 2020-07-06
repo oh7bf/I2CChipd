@@ -1,0 +1,14 @@
+[Unit]
+Description=Read chips with I2C interface.
+
+[Service]
+ExecStart=/usr/sbin/i2chipd
+Type=simple
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+
+[Install]
+WantedBy=multi-user.target
