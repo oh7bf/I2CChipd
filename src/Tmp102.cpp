@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sat Jul  4 15:13:58 CDT 2020
- * Edit: 
+ * Edit: Mon Jul  6 16:27:21 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -86,7 +86,7 @@ uint8_t Tmp102::GetFaultQueue()
   uint16_t Config = 0;
 
   Config = Tmp102::GetConfig();
-  FaultQueue = ( Config & 0x1800 ) >> 11;
+  FaultQueue = (uint8_t)(( Config & 0x1800 ) >> 11);
 
   return FaultQueue;
 }
@@ -197,8 +197,9 @@ void Tmp102::SetFaultQueue(uint16_t FaultQueue)
   uint16_t Config = 0;
 
   FaultQueue &= 0x0003;
-  FaultQueue = FaultQueue << 12;
+  FaultQueue = FaultQueue << 11;
   Config = Tmp102::GetConfig();
+  Config &= 0xE700;
   Config |= FaultQueue; 
 
   Tmp102::SetConfig( Config );
@@ -213,6 +214,7 @@ void Tmp102::SetConversionRate(int ConversionRate)
   ConversionRate &= 0x0003;
   ConversionRate = ConversionRate << 6;
   Config = Tmp102::GetConfig();
+  Config &= 0xFF3F;
   Config |= ConversionRate; 
 
   Tmp102::SetConfig( Config );

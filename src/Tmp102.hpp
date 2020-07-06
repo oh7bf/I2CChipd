@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:33:30 CDT 2020
- * Edit: 
+ * Edit: Mon Jul  6 15:44:03 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -92,7 +92,7 @@ class Tmp102 : public I2Chip
     /// Get ALERT pin polarity to 0 or 1.
     int GetPolarity();
 
-    /// Get fault queue value 1, 2, 4 or 6.
+    /// Get fault queue value 0 - 3 meaning 1, 2, 4 or 6.
     uint8_t GetFaultQueue();
 
     /// Get conversion rate 0 - 3 meaning 0.25, 1, 4 or 8 Hz.
@@ -146,7 +146,7 @@ class Tmp102 : public I2Chip
     /// Set ALERT pin polarity to 0 or 1.
     void SetPolarity(int Pol);
 
-    /// Set fault queue value 1, 2, 4 or 6.
+    /// Set fault queue value 0 - 3 meaning 1, 2, 4 or 6.
     void SetFaultQueue(uint16_t FaultQueue);
 
     /// Set conversion rate 0 - 3 meaning 0.25, 1, 4 or 8 Hz.
