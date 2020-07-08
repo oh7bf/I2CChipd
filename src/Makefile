@@ -13,16 +13,18 @@ LDFLAGS       = -O2
 
 MODULES       = I2Chip.o 
 MODULES      += Tmp102.o
+MODULES      += Bmp280.o
 MODULES      += i2chipd.o 
-
-
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-all: i2chipd test_tmp102 
+all: i2chipd test_bmp280 test_tmp102 
 
 i2chipd: $(MODULES) 
+	$(LD) $(LDFLAGS) $^ -o $@
+
+test_bmp280: I2Chip.o Bmp280.o test_bmp280.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 test_tmp102: I2Chip.o Tmp102.o test_tmp102.o
