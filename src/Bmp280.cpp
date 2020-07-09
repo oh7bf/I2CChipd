@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Tue 07 Jul 2020 01:26:09 PM CDT
- * Edit: 
+ * Edit: Wed 08 Jul 2020 04:43:18 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -30,6 +30,23 @@
 using namespace std;
 
 Bmp280::~Bmp280() { };
+
+
+/// Pressure in Pascal from last measurement. 
+double Bmp280::GetPressure() 
+{ 
+  double p = Pressure;
+  p /= 256.0; 
+  return  p; 
+} 
+
+/// Temperature in Celsius from last measurement. 
+double Bmp280::GetTemperature() 
+{ 
+  double T = Temperature;
+  T /= 100.0;
+  return T; 
+}
 
 // Get ID register value.
 uint8_t Bmp280::GetID()
@@ -73,6 +90,17 @@ uint8_t Bmp280::GetConfig()
   config = I2Chip::I2cReadUInt8(address, buffer, error);
 
   return config;
+}
+
+// Get two power mode bits 0 - 3.
+uint8_t Bmp280::GetMode()
+{
+  uint8_t ctrl_meas = 0;
+
+  ctrl_meas = Bmp280::GetControlMeasurement();
+  ctrl_meas &= 0x03;
+
+  return ctrl_meas;
 }
 
 // Set pointer register.
@@ -126,16 +154,16 @@ void Bmp280::SetPOverSample(uint8_t POverSample)
 }
 
 // Set two power mode bits with 0 - 3.
-void Bmp280::SetPowerMode(uint8_t PowerMode)
+void Bmp280::SetMode(uint8_t Mode)
 {
   uint8_t ctrl_meas = 0;
 
   I2Chip::I2cWriteUInt8(BMP280_CTRL_MEAS_REG, address, buffer, error);
   ctrl_meas = I2Chip::I2cReadUInt8(address, buffer, error);
   
-  PowerMode &= 0x03;
+  Mode &= 0x03;
   ctrl_meas &= 0xFC;
-  ctrl_meas |= PowerMode;
+  ctrl_meas |= Mode;
 
   I2Chip::I2cWriteRegisterUInt8(BMP280_CTRL_MEAS_REG, ctrl_meas, address, buffer, error);
 
@@ -150,6 +178,7 @@ void Bmp280::SetStandby(uint8_t Standby)
   config = I2Chip::I2cReadUInt8(address, buffer, error);
   
   Standby &= 0x07;
+  Standby = Standby << 5;
   config &= 0x1F;
   config |= Standby;
 
@@ -166,6 +195,7 @@ void Bmp280::SetFilter(uint8_t Filter)
   config = I2Chip::I2cReadUInt8(address, buffer, error);
   
   Filter &= 0x07;
+  Filter = Filter << 2;
   config &= 0xE3;
   config |= Filter;
 
@@ -181,7 +211,7 @@ bool Bmp280::IsMeasuring()
   I2Chip::I2cWriteUInt8(BMP280_STATUS_REG, address, buffer, error);
   status = I2Chip::I2cReadUInt8(address, buffer, error);
 
-  if( (status & 0x08) == 1 ) measuring = true; else measuring = false;
+  if( (status & 0x08) == 0x08 ) measuring = true; else measuring = false;
 
   return measuring;
 }
@@ -195,7 +225,7 @@ bool Bmp280::IsUpdate()
   I2Chip::I2cWriteUInt8(BMP280_STATUS_REG, address, buffer, error);
   status = I2Chip::I2cReadUInt8(address, buffer, error);
 
-  if( (status & 0x01) == 1 ) update = true; else update = false;
+  if( (status & 0x01) == 0x01 ) update = true; else update = false;
 
   return update;
 }
@@ -283,70 +313,65 @@ bool Bmp280::GetCalibration()
   return true;
 }
 
-// Read chip temperature register and return value in Celcius. 
-int32_t Bmp280::GetTemperature()
+// Read chip temperature and pressure registers and do conversion.
+int Bmp280::Measure()
 {
-  int32_t temp = -9999;
   int32_t tadc = 0, var1 = 0, var2 = 0;
-
-  I2Chip::I2cWriteUInt8(BMP280_TEMP_MSB_REG, address, buffer, error);
-  if( error != 0 )
-  {
-    return temp;
-  }
-  else
-  {
-    I2Chip::I2cReadBytes(3, address, buffer, error);
-    tadc =  buffer[ 0 ] << 12;
-    tadc |= (int32_t)( buffer[ 1 ] << 4 ); 
-    tadc |= (int32_t)( buffer[ 2 ] >> 4 ); 
-
-    var1 = ( ( (tadc >> 3) - ((int32_t)dig_T1 << 1) ) * (int32_t)dig_T2 ) >> 11; 
-    var2 = ( ( ( ( (tadc >> 4) - ((int32_t)dig_T1)) * ( (tadc >> 4) - ((int32_t)dig_T1) ) ) >> 12 ) * ((int32_t)dig_T3) ) >> 14;
-    tfine = var1 + var2;
-    temp = (tfine * 5 + 128) >> 8; 
-  }
-
-  return temp;
-}
-
-// Read chip pressure register and return value in Pascal. 
-uint32_t Bmp280::GetPressure()
-{
-  int64_t p = 0, var1 = 0, var2 = 0;
+  int64_t p = 0, pvar1 = 0, pvar2 = 0;
   int32_t padc = 0;
-  uint32_t press = 0;
+  int32_t tfine;
 
   I2Chip::I2cWriteUInt8(BMP280_PRESS_MSB_REG, address, buffer, error);
   if( error != 0 )
   {
-    return press;
+    return error;
   }
   else
   {
-    I2Chip::I2cReadBytes(3, address, buffer, error);
-    padc =  buffer[ 0 ] << 12;
-    padc |= (int32_t)( buffer[ 1 ] << 4 ); 
-    padc |= (int32_t)( buffer[ 2 ] >> 4 ); 
+    I2Chip::I2cReadBytes(6, address, buffer, error);
+    if( error != 0 )
+    {
+      return error;
+    }
+    else
+    {
+      tadc =  buffer[ 3 ] << 12;
+      tadc |= (int32_t)( buffer[ 4 ] << 4 ); 
+      tadc |= (int32_t)( buffer[ 5 ] >> 4 ); 
 
-    var1 = ((int64_t)tfine) - 128000;
-    var2 = var1 * var1 * (int64_t)dig_P6;
-    var2 = var2 + ( (var1 * (int64_t)dig_P5) << 17 );
-    var2 = var2 + ( ( (int64_t)dig_P4) << 35 );
-    var1 = ( (var1 * var1 * (int64_t)dig_P3) >> 8 ) + ( (var1 * (int64_t)dig_P2 ) << 12 );
-    var1 = ( ( ( ( (int64_t)1) << 47) + var1) ) * ( (int64_t)dig_P1 ) >> 33;
+      var1 = ( ( (tadc >> 3) - ((int32_t)dig_T1 << 1) ) * (int32_t)dig_T2 ) >> 11; 
+      var2 = ( ( ( ( (tadc >> 4) - ((int32_t)dig_T1)) * ( (tadc >> 4) - ((int32_t)dig_T1) ) ) >> 12 ) * ((int32_t)dig_T3) ) >> 14;
+      tfine = var1 + var2;
+      Temperature = (tfine * 5 + 128) >> 8; 
 
-    if( var1 == 0 ) return 0;
+      padc =  buffer[ 0 ] << 12;
+      padc |= (int32_t)( buffer[ 1 ] << 4 ); 
+      padc |= (int32_t)( buffer[ 2 ] >> 4 ); 
 
-    p = 1048576 - padc;
-    p = ( ( (p << 31) - var2) * 3125 ) / var1;
-    var1 = ( ( (int64_t)dig_P9) * ( p >> 13 ) * ( p >> 13 ) ) >> 25;
-    var2 = ( ( (int64_t)dig_P8) * p ) >> 19;
-    p = ( (p + var1 + var2) >> 8) + ( ( (int64_t)dig_P7 ) << 4 );
+      pvar1 = ((int64_t)tfine) - 128000;
+      pvar2 = pvar1 * pvar1 * (int64_t)dig_P6;
+      pvar2 = pvar2 + ( (pvar1 * (int64_t)dig_P5) << 17 );
+      pvar2 = pvar2 + ( ( (int64_t)dig_P4) << 35 );
+      pvar1 = ( (pvar1 * pvar1 * (int64_t)dig_P3) >> 8 ) + ( (pvar1 * (int64_t)dig_P2 ) << 12 );
+      pvar1 = ( ( ( ( (int64_t)1) << 47) + var1) ) * ( (int64_t)dig_P1 ) >> 33;
 
-    press = (uint32_t)p;
+      if( pvar1 == 0 )
+      {
+	Pressure = 0;
+      }
+      else
+      {
+        p = 1048576 - padc;
+        p = ( ( (p << 31) - var2) * 3125 ) / pvar1;
+        pvar1 = ( ( (int64_t)dig_P9) * ( p >> 13 ) * ( p >> 13 ) ) >> 25;
+        pvar2 = ( ( (int64_t)dig_P8) * p ) >> 19;
+        p = ( (p + pvar1 + pvar2) >> 8) + ( ( (int64_t)dig_P7 ) << 4 );
+
+        Pressure = (uint32_t)p;
+      }
+    }
   }
 
-  return press;
+  return 0;
 }
 

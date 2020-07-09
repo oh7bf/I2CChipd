@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Tue 07 Jul 2020 11:08:43 AM CDT
- * Edit: 
+ * Edit: Wed 08 Jul 2020 11:20:53 AM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -84,8 +84,11 @@ class Bmp280 : public I2Chip
     int16_t  dig_P8;
     int16_t  dig_P9;
 
-    /// temperature parameter from last measurement used in pressure calculation
-//    int32_t tfine;
+    /// 100 x temperature in Celsius from last conversion
+    int32_t Temperature;
+
+    /// 256 x pressure in Pascal from last conversion
+    uint32_t Pressure;
 
    public:
     /// Construct Bmp280 object with parameters.
@@ -105,9 +108,6 @@ class Bmp280 : public I2Chip
 
     virtual ~Bmp280();
 
-    /// temperature parameter from last measurement used in pressure calculation
-    int32_t tfine;
-
     /// Get chip name tag.
     std::string GetName() { return name; }
 
@@ -120,6 +120,12 @@ class Bmp280 : public I2Chip
     /// Get last error number.
     int GetError() { return error; }
 
+    /// Pressure in Pascal from last measurement. 
+    double GetPressure();
+
+    /// Temperature in Celsius from last measurement. 
+    double GetTemperature();
+
     /// Get ID register value.
     uint8_t GetID();
 
@@ -131,6 +137,9 @@ class Bmp280 : public I2Chip
 
     /// Get configuration register value.
     uint8_t GetConfig();
+
+    /// Get two power mode bits 0 - 3.
+    uint8_t GetMode();
 
     /// Set chip name tag.
     void SetName(std::string name) { this->name = name; }
@@ -160,7 +169,7 @@ class Bmp280 : public I2Chip
     void SetPOverSample(uint8_t POverSample);
 
     /// Set two power mode bits with 0 - 3.
-    void SetPowerMode(uint8_t PowerMode);
+    void SetMode(uint8_t Mode);
 
     /// Set three inactive duration bits with 0 - 7.
     void SetStandby(uint8_t Standby);
@@ -189,11 +198,8 @@ class Bmp280 : public I2Chip
     /// Read chip calibration data and return true if success.
     bool GetCalibration();
 
-    /// Read chip temperature register and return value in integer Celcius. 
-    int32_t GetTemperature();
-
-    /// Read chip pressure register and return value in Pascal. 
-    uint32_t GetPressure();
+    /// Read chip temperature and pressure registers and convert to Celcius and Pascal. Return error code. 
+    int Measure();
 
 };
 
