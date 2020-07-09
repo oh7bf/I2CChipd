@@ -20,13 +20,14 @@
  ****************************************************************************
  *
  * Tue 07 Jul 2020 02:19:06 PM CDT
- * Edit: 
+ * Edit: Wed 08 Jul 2020 07:21:17 PM CDT
  *
  * Jaakko Koivuniemi
  **/
 
 #include "test_bmp280.hpp"
 #include <iostream>
+#include <iomanip>
 #include <unistd.h>
 
 using namespace std;
@@ -63,19 +64,20 @@ int main(int argc, char **argv)
   cout << "Name tag    I2C device file    I2C address\n";
   cout << chip.GetName();
   cout << "      " << chip.GetDevice();
-  cout << "        " << chip.GetAddress() << "\n";
+  cout << "         " << chip.GetAddress() << "\n";
 
   cout << "-- read registers\n";
   uint8_t ID = chip.GetID();
+  int error = chip.GetError();
+
   uint8_t config = 0;
   uint8_t status =  0; 
   uint8_t ctrlmeas = 0;
-  int osrs_p = 0, osrs_t = 0, filter = 0;
 
-  int error = chip.GetError();
-
-  int32_t T = 0;
-  uint32_t p = 0;
+  double T = 0;
+  double p = 0;
+  uint8_t i = 0;
+  int j = 0;
   if( error != 0 )
   {
     cout << "-- problem reading ID register, check parameters above and wiring, quit now\n";
@@ -92,6 +94,85 @@ int main(int argc, char **argv)
     cout << "STATUS = " << (int)(status) << " ";
     cout << "CTRL_MEAS = " << (int)(ctrlmeas) << "\n";
 
+    cout << "-- set t_sb 1, 2, 3, 4, 5, 6, 7, 0 and read back\n";
+    for(i = 1; i < 8; i++)
+    {
+      chip.SetStandby( i );
+      config = chip.GetConfig();
+      config &= 0xE0;
+      config = config >> 5;
+      cout << (int)config << ", ";
+    }
+    chip.SetStandby( 0 );
+    config = chip.GetConfig();
+    config &= 0xE0;
+    config = config >> 5;
+    cout << (int)config << "\n";
+
+    cout << "-- set filter 1, 2, 3, 4, 5, 6, 7, 0 and read back\n";
+    for(i = 1; i < 8; i++)
+    {
+      chip.SetFilter( i );
+      config = chip.GetConfig();
+      config &= 0x1C;
+      config = config >> 2;
+      cout << (int)config << ", ";
+    }
+    chip.SetFilter( 0 );
+    config = chip.GetConfig();
+    config &= 0x1C;
+    config = config >> 2;
+    cout << (int)config << "\n";
+
+    cout << "-- set osrs_t 1, 2, 3, 4, 5, 6, 7, 0 and read back\n";
+    for(i = 1; i < 8; i++)
+    {
+      chip.SetTOverSample( i );
+      ctrlmeas = chip.GetControlMeasurement();
+      ctrlmeas &= 0xE0;
+      ctrlmeas = ctrlmeas >> 5;
+      cout << (int)ctrlmeas << ", ";
+    }
+    chip.SetTOverSample( 0 );
+    ctrlmeas = chip.GetControlMeasurement();
+    ctrlmeas &= 0xE0;
+    ctrlmeas = ctrlmeas >> 5;
+    cout << (int)ctrlmeas << "\n";
+
+    cout << "-- set osrs_p 1, 2, 3, 4, 5, 6, 7, 0 and read back\n";
+    for(i = 1; i < 8; i++)
+    {
+      chip.SetPOverSample( i );
+      ctrlmeas = chip.GetControlMeasurement();
+      ctrlmeas &= 0x1C;
+      ctrlmeas = ctrlmeas >> 2;
+      cout << (int)ctrlmeas << ", ";
+    }
+    chip.SetPOverSample( 0 );
+    ctrlmeas = chip.GetControlMeasurement();
+    ctrlmeas &= 0x1C;
+    ctrlmeas = ctrlmeas >> 2;
+    cout << (int)ctrlmeas << "\n";
+
+    cout << "-- set forced mode and read back\n";
+    chip.Forced();
+    ctrlmeas = chip.GetControlMeasurement();
+    ctrlmeas &= 0x03;
+    cout << "mode=" << (int)ctrlmeas << "\n";
+
+    cout << "-- set normal mode and read back\n";
+    chip.Normal();
+    ctrlmeas = chip.GetControlMeasurement();
+    ctrlmeas &= 0x03;
+    cout << "mode=" << (int)ctrlmeas << "\n";
+    usleep( 30000 );
+
+    cout << "-- set sleep mode and read back\n";
+    chip.Sleep();
+    ctrlmeas = chip.GetControlMeasurement();
+    ctrlmeas &= 0x03;
+    cout << "mode=" << (int)ctrlmeas << "\n";
+
     cout << "-- read calibration data\n";
     if( !chip.GetCalibration() )
     {
@@ -100,21 +181,52 @@ int main(int argc, char **argv)
     } 
     else
     {
-      chip.SetTOverSample( 1 );
-      chip.SetPOverSample( 1 );
+      cout << "-- 1 x T oversampling, 1 x p oversampling\n";
+      chip.SetTOverSample( 1 ); // 1 x oversampling
+      chip.SetPOverSample( 1 ); // 1 x oversampling
+
+      cout << "-- forced conversion\n";
       chip.Forced();
-      sleep( 1 );
-      cout << chip.tfine << "\n";
+
+      usleep( 10000 );
+      cout << "-- read temperature and pressure registers\n";
+      chip.Measure();
       T = chip.GetTemperature();
-      cout << chip.tfine << "\n";
       p = chip.GetPressure();
-      cout << chip.tfine << "\n";
-      cout << "100 x T =" << T << "\n";
-      cout << "p(Q24.8) =" << p << "\n";
+      cout << "T =" << T << " C, p =" << std::setprecision(9) << p << " Pa\n";
+
+      cout << "-- chip reset\n";
+      chip.Reset();
+      usleep( 10000 );
+
+      cout << "-- 1 x T oversampling, 1 x p oversampling\n";
+      chip.SetTOverSample( 1 ); // 1 x oversampling
+      chip.SetPOverSample( 1 ); // 1 x oversampling
+
+      chip.Forced();
+      usleep( 10000 );
+      cout << "-- read temperature and pressure registers\n";
+      chip.Measure();
+      T = chip.GetTemperature();
+      p = chip.GetPressure();
+      cout << "T =" << T << " C, p =" << std::setprecision(9) << p << " Pa\n";
+
+      cout << "-- normal mode\n";
+      chip.SetStandby( 1 ); // 62.5 ms
+      chip.Normal();
+      cout << "   T[C]      p[Pa]\n";
+      for( j = 0; j < 10; j++)
+      {
+        usleep( 62500 );
+        chip.Measure();
+	T = chip.GetTemperature();
+        p = chip.GetPressure();
+        cout << j << "  " << T << "     ";
+        cout << std::setprecision(9) << p << "\n";
+      }
     }
 
   }
-
 
   return 0;
 
