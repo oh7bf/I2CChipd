@@ -362,7 +362,7 @@ int Bmp280::Measure()
       else
       {
         p = 1048576 - padc;
-        p = ( ( (p << 31) - var2) * 3125 ) / pvar1;
+        p = ( ( (p << 31) - pvar2) * 3125 ) / pvar1;
         pvar1 = ( ( (int64_t)dig_P9) * ( p >> 13 ) * ( p >> 13 ) ) >> 25;
         pvar2 = ( ( (int64_t)dig_P8) * p ) >> 19;
         p = ( (p + pvar1 + pvar2) >> 8) + ( ( (int64_t)dig_P7 ) << 4 );
