@@ -564,4 +564,78 @@ void I2Chip::I2cWriteRegisterUInt16(uint8_t reg, uint16_t data, uint16_t address
   return;
 }
 
+// Write N bytes from buffer to I2C address.
+
+// The chip I2C address and pointer to buffer are given as parameters.
+// Error codes: -1 failed to open I2C port, -2 failed to lock I2C port,
+// -3 unable to get bus access to talk to slave, -4 unable to read
+// from slave and -5 more or less data received than expected.
+void I2Chip::I2cWriteBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & error)
+{
+  int fd, rd;
+  int cnt = 0;
+  char message[ 500 ] = "";
+
+  if( Nbytes > BUFFER_MAX )
+  { 
+    sprintf(message, "%d is more than I2C write buffer size.", Nbytes);
+    fprintf(stderr, SD_ERR "%s", message);
+    error = -6;
+    return;
+  }
+
+  if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 )
+  {
+    strncpy(message, strerror( errno ), 400);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    error = -1;
+    return;
+  }
+      
+  rd = flock(fd, LOCK_EX|LOCK_NB);
+
+  // try again if port locking failed
+  cnt = I2LOCK_MAX;
+  while( rd == 1 && cnt > 0 )
+  {
+    sleep( 1 );
+    rd = flock(fd, LOCK_EX|LOCK_NB);
+    cnt--;
+  }
+
+  if( rd )
+  {
+    strncpy(message, strerror( errno ), 400);
+    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s", message);
+    close( fd );
+    error = -2;
+    return;
+  }
+
+  if( ioctl(fd, I2C_SLAVE, address) < 0 )
+  {
+    strncpy(message, strerror( errno ), 400);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    close( fd );
+    error = -3;
+    return;
+  }
+
+  sprintf(message, "I2C[%02X] write", address);
+  fprintf(stderr, SD_DEBUG "%s", message);
+
+  if( write(fd, buffer, Nbytes) != Nbytes ) 
+  {
+    strncpy(message, strerror( errno ), 400);
+    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s", message);
+    close( fd );
+    error = -4;
+    return;
+  }
+
+  close( fd );
+  error = 0;
+
+  return;
+}
 

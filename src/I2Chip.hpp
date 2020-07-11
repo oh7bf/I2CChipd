@@ -134,6 +134,14 @@ class I2Chip
     /// to slave and -5 more or less data transfered than expected.
     void I2cWriteRegisterUInt16(uint8_t reg, uint16_t data, uint16_t address, uint8_t *buffer, int & error);
 
+    /// Write N bytes from buffer to I2C address.
+
+    /// The chip I2C address and pointer to buffer are given as parameters.
+    /// Error codes: -1 failed to open I2C port, -2 failed to lock I2C port,
+    /// -3 unable to get bus access to talk to slave, -4 unable to read
+    /// from slave and -5 more or less data transfered than expected.
+    void I2cWriteBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & error);
+
 };
 
 #endif
