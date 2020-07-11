@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sun Jul  5 09:22:54 CDT 2020
- * Edit: Mon Jul  6 17:10:28 CDT 2020
+ * Edit: Thu Jul  9 14:30:52 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -58,21 +58,21 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  Tmp102 chip = Tmp102(name, i2cdev, address);
+  Tmp102 *chip = new Tmp102(name, i2cdev, address);
 
   cout << "Name tag    I2C device file    I2C address\n";
-  cout << chip.GetName();
-  cout << "      " << chip.GetDevice();
-  cout << "         " << chip.GetAddress() << "\n";
+  cout << chip->GetName();
+  cout << "      " << chip->GetDevice();
+  cout << "         " << chip->GetAddress() << "\n";
 
   cout << "-- read registers\n";
-  uint16_t config = chip.GetConfig();
+  uint16_t config = chip->GetConfig();
   uint16_t lowlimit = 0; 
   uint16_t highlimit = 0;
   uint16_t config2 = 0;
   int TM = 0, SD = 0;
 
-  int error = chip.GetError();
+  int error = chip->GetError();
 
   if( error != 0 )
   {
@@ -81,111 +81,113 @@ int main(int argc, char **argv)
   }
   else
   {
-    lowlimit = chip.GetLowLimit();
-    highlimit = chip.GetHighLimit();
+    lowlimit = chip->GetLowLimit();
+    highlimit = chip->GetHighLimit();
 
     cout << "CONFIG = " << config << " ";
     cout << "TLOW = " << lowlimit << " ";
     cout << "THIGH = " << highlimit << "\n";
 
-    chip.SetPointer( TMP102_TEMP_REG );
-    cout << "-- temperature: " << chip.GetTemperature() << " C, ";
-    cout << "I2C error flag: " << chip.GetError() << "\n";
+    chip->SetPointer( TMP102_TEMP_REG );
+    cout << "-- temperature: " << chip->GetTemperature() << " C, ";
+    cout << "I2C error flag: " << chip->GetError() << "\n";
     cout << "-- set extended mode\n";
 
-    chip.ExtendedMode();
+    chip->ExtendedMode();
     usleep(250000); // assume 4 Hz conversion rate
-    chip.SetPointer( TMP102_TEMP_REG );
-    cout << "-- temperature: " << chip.GetTemperature() << " C, ";
-    cout << "I2C error flag: " << chip.GetError() << "\n";
+    chip->SetPointer( TMP102_TEMP_REG );
+    cout << "-- temperature: " << chip->GetTemperature() << " C, ";
+    cout << "I2C error flag: " << chip->GetError() << "\n";
 
     cout << "-- set normal mode\n";
-    chip.NormalMode();
+    chip->NormalMode();
     usleep(250000); // assume 4 Hz conversion rate
-    chip.SetPointer( TMP102_TEMP_REG );
-    cout << "-- temperature: " << chip.GetTemperature() << " C, ";
-    cout << "I2C error flag: " << chip.GetError() << "\n";
+    chip->SetPointer( TMP102_TEMP_REG );
+    cout << "-- temperature: " << chip->GetTemperature() << " C, ";
+    cout << "I2C error flag: " << chip->GetError() << "\n";
 
     cout << "-- read status bits\n";
-    cout << "ALERT = " << chip.GetAlertBit() << " ";
-    cout << "POL = " << chip.GetPolarity() << " ";
-    cout << "FQ = " << (int)(chip.GetFaultQueue()) << " ";
-    cout << "CR = " << chip.GetConversionRate() << "\n";
+    cout << "ALERT = " << chip->GetAlertBit() << " ";
+    cout << "POL = " << chip->GetPolarity() << " ";
+    cout << "FQ = " << (int)(chip->GetFaultQueue()) << " ";
+    cout << "CR = " << chip->GetConversionRate() << "\n";
 
     cout << "-- set POL to 0, 1, 0 and read back\n";
-    chip.SetPolarity( 0 );
-    cout << "POL = " << chip.GetPolarity();
-    chip.SetPolarity( 1 );
-    cout << ", " << chip.GetPolarity();
-    chip.SetPolarity( 0 );
-    cout << ", " << chip.GetPolarity() << "\n";
+    chip->SetPolarity( 0 );
+    cout << "POL = " << chip->GetPolarity();
+    chip->SetPolarity( 1 );
+    cout << ", " << chip->GetPolarity();
+    chip->SetPolarity( 0 );
+    cout << ", " << chip->GetPolarity() << "\n";
 
     cout << "-- set FQ to 1, 2, 3, 0 and read back\n";
-    chip.SetFaultQueue( 1 );
-    cout << "FQ = " << (int)(chip.GetFaultQueue());
-    chip.SetFaultQueue( 2 );
-    cout << ", " << (int)(chip.GetFaultQueue());
-    chip.SetFaultQueue( 3 );
-    cout << ", " << (int)(chip.GetFaultQueue()); 
-    chip.SetFaultQueue( 0 );
-    cout << ", " << (int)(chip.GetFaultQueue()) << "\n";
+    chip->SetFaultQueue( 1 );
+    cout << "FQ = " << (int)(chip->GetFaultQueue());
+    chip->SetFaultQueue( 2 );
+    cout << ", " << (int)(chip->GetFaultQueue());
+    chip->SetFaultQueue( 3 );
+    cout << ", " << (int)(chip->GetFaultQueue()); 
+    chip->SetFaultQueue( 0 );
+    cout << ", " << (int)(chip->GetFaultQueue()) << "\n";
 
     cout << "-- set CR to 1, 2, 3, 0 and read back\n";
-    chip.SetConversionRate( 1 );
-    cout << "CR = " << (int)(chip.GetConversionRate());
-    chip.SetConversionRate( 2 );
-    cout << ", " << (int)(chip.GetConversionRate());
-    chip.SetConversionRate( 3 );
-    cout << ", " << (int)(chip.GetConversionRate()); 
-    chip.SetConversionRate( 0 );
-    cout << ", " << (int)(chip.GetConversionRate()) << "\n";
+    chip->SetConversionRate( 1 );
+    cout << "CR = " << (int)(chip->GetConversionRate());
+    chip->SetConversionRate( 2 );
+    cout << ", " << (int)(chip->GetConversionRate());
+    chip->SetConversionRate( 3 );
+    cout << ", " << (int)(chip->GetConversionRate()); 
+    chip->SetConversionRate( 0 );
+    cout << ", " << (int)(chip->GetConversionRate()) << "\n";
 
     cout << "-- set interrupt mode and read TM\n";
-    chip.InterruptMode();
-    config2 = chip.GetConfig();
+    chip->InterruptMode();
+    config2 = chip->GetConfig();
     TM = (int)( ( config2 & 0x0200 ) >> 9 );
     cout << "TM = " << TM << "\n";
 
     cout << "-- set comparator mode and read TM\n";
-    chip.ComparatorMode();
-    config2 = chip.GetConfig();
+    chip->ComparatorMode();
+    config2 = chip->GetConfig();
     TM = (int)( ( config2 & 0x0200 ) >> 9 );
     cout << "TM = " << TM << "\n";
 
     cout << "-- shutdown and read SD\n";
-    chip.Shutdown();
-    config2 = chip.GetConfig();
+    chip->Shutdown();
+    config2 = chip->GetConfig();
     SD = (int)( ( config2 & 0x0100 ) >> 8 );
     cout << "SD = " << SD << "\n";
 
     cout << "-- continuous conversion and read SD\n";
-    chip.Continuous();
-    config2 = chip.GetConfig();
+    chip->Continuous();
+    config2 = chip->GetConfig();
     SD = (int)( ( config2 & 0x0100 ) >> 8 );
     cout << "SD = " << SD << "\n";
 
     cout << "-- shutdown 1 s and do one shot conversion\n";
-    chip.Shutdown();
+    chip->Shutdown();
     sleep(1);
-    chip.OneShot();
+    chip->OneShot();
     usleep(50000);
-    chip.SetPointer( 0 );
-    cout << "-- temperature: " << chip.GetTemperature() << " C, ";
-    cout << "I2C error flag: " << chip.GetError() << "\n";
+    chip->SetPointer( 0 );
+    cout << "-- temperature: " << chip->GetTemperature() << " C, ";
+    cout << "I2C error flag: " << chip->GetError() << "\n";
 
     cout << "-- start continuos conversion and read temperature after 1 s\n";
-    chip.Continuous();
+    chip->Continuous();
     sleep(1);
-    chip.SetPointer( 0 );
-    cout << "-- temperature: " << chip.GetTemperature() << " C, ";
-    cout << "I2C error flag: " << chip.GetError() << "\n";
+    chip->SetPointer( 0 );
+    cout << "-- temperature: " << chip->GetTemperature() << " C, ";
+    cout << "I2C error flag: " << chip->GetError() << "\n";
 
     cout << "-- restore original CONFIG, TLOW and THIGH register values\n";
-    chip.SetConfig( config );
-    chip.SetLowLimit( lowlimit );
-    chip.SetHighLimit( highlimit );
+    chip->SetConfig( config );
+    chip->SetLowLimit( lowlimit );
+    chip->SetHighLimit( highlimit );
 
   }
+
+  delete chip;
 
   return 0;
 
