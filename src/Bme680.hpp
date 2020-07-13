@@ -131,6 +131,16 @@ class Bme680 : public I2Chip
     int16_t par_g2;
     int8_t  par_g3;
 
+    int8_t range_sw_error;
+    int8_t res_heat_val;
+    uint8_t res_heat_range;
+
+    /// raw T, P, H and R ADC values
+    uint32_t tadc;
+    uint32_t padc;
+    uint16_t hadc;
+    uint16_t gadc;
+
     /// temperature in Celsius from last conversion
     int16_t Temperature;
 
@@ -142,6 +152,12 @@ class Bme680 : public I2Chip
 
     /// gas resistance in Ohm
     uint32_t Resistance;
+
+    /// gas conversion valid
+    bool gas_valid;
+
+    /// heater stability for target heater resistance
+    bool heat_stab;
 
    public:
     /// Construct Bme680 object with parameters.
@@ -185,6 +201,24 @@ class Bme680 : public I2Chip
     /// Gas resistance in Ohm from last measurement. 
     double GetResistance();
 
+    /// Gas measurement is valid.
+    bool GasValid() { return gas_valid; }
+
+    /// Heater is stable.
+    bool HeaterStable() { return heat_stab; }
+
+    /// Raw T ADC value.
+    uint32_t GetTADC() { return tadc; }
+
+    /// Raw p ADC value.
+    uint32_t GetpADC() { return padc; }
+
+    /// Raw H ADC value.
+    uint16_t GetHADC() { return hadc; }
+
+    /// Raw R ADC value.
+    uint16_t GetRADC() { return gadc; }
+
     /// Get ID register value.
     uint8_t GetID();
 
@@ -208,6 +242,9 @@ class Bme680 : public I2Chip
 
     /// Get two power mode bits 0 - 3.
     uint8_t GetMode();
+
+    /// Get gas measurement index.
+    uint8_t GetGasMeasIndex();
 
     /// Set chip name tag.
     void SetName(std::string name) { this->name = name; }
@@ -257,6 +294,9 @@ class Bme680 : public I2Chip
     /// Set gas heater resistor profile 0 - 9.
     void SetGasHeatResistor(uint8_t Profile, uint8_t R);
 
+    /// Set gas heater temperature profile 0 - 9.
+    void SetGasHeatTemperature(uint8_t Profile, int Tamb, int T);
+
     /// Set gas heater current bytes 0 - 9.
     void SetGasHeatCurrent(uint8_t Profile, uint8_t I);
 
@@ -283,6 +323,9 @@ class Bme680 : public I2Chip
 
     /// Forced mode.
     void Forced();
+
+    /// Turn on current injected to heater.
+    void HeaterOn();
 
     /// Turn off current injected to heater.
     void HeaterOff();

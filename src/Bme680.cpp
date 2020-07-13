@@ -153,6 +153,17 @@ uint8_t Bme680::GetMode()
   return ctrl_meas;
 }
 
+// Get gas measurement index 0 - 15.
+uint8_t Bme680::GetGasMeasIndex()
+{
+  uint8_t status = 0;
+  status = Bme680::GetMeasStatus();
+
+  status &= 0x0F;
+
+  return status;
+}
+
 // Set pointer register.
 void Bme680::SetPointer(uint8_t PointerReg)
 {
@@ -230,6 +241,7 @@ void Bme680::SetHeaterProfile(uint8_t Profile)
   ctrl_gas1 = I2Chip::I2cReadUInt8(address, buffer, error);
   
   Profile &= 0x0F;
+  ctrl_gas1 &= 0xF0;
   ctrl_gas1 |= Profile;
 
   I2Chip::I2cWriteRegisterUInt8(BME680_CTRL_GAS1_REG, ctrl_gas1, address, buffer, error);
@@ -259,6 +271,29 @@ void Bme680::SetGasHeatCurrent(uint8_t Profile, uint8_t I)
 
   I2Chip::I2cWriteRegisterUInt8(reg, I, address, buffer, error);
 }
+
+// Set gas heater temperature profile 0 - 9.
+void Bme680::SetGasHeatTemperature(uint8_t Profile, int Tamb, int T)
+{
+  uint8_t reg = BME680_GAS_RES_HEAT_REG + Profile;;
+  uint8_t heatres = 0;
+  int32_t var1 = 0, var2 = 0, var3 = 0, var4 = 0, var5 = 0;
+  int32_t heatresx100 = 0; 
+
+  var1 = (((int32_t)Tamb * par_g3) / 10 ) << 8;
+  var2 = (par_g1 + 784) * (((((par_g2 + 154009) * T * 5) / 100) + 3276800) / 10);
+  var3 = var1 + (var2 >> 1);
+  var4 = ( var3 / (res_heat_range + 4 ) );
+  var5 = (131 * res_heat_val) + 65536;
+  heatresx100 = (int32_t)((( var4 / var5 ) - 250 ) * 34 );
+  heatres = (uint8_t)(( heatresx100 + 50) / 100);
+
+  fprintf(stderr, SD_DEBUG "res_heat_%d = %d.", Profile, heatres);
+  
+  I2Chip::I2cWriteRegisterUInt8(reg, heatres, address, buffer, error);
+}
+
+
 
 // Run gas conversions.
 void Bme680::RunGas()
@@ -378,10 +413,32 @@ void Bme680::Forced()
   I2Chip::I2cWriteRegisterUInt8(BME680_CTRL_MEAS_REG, ctrl_meas, address, buffer, error);
 }
 
+// Turn on current injected to heater.
+void Bme680::HeaterOn()
+{
+  uint8_t ctrl_gas0;
+
+  I2Chip::I2cWriteUInt8(BME680_CTRL_GAS0_REG, address, buffer, error);
+
+  ctrl_gas0 = I2Chip::I2cReadUInt8(address, buffer, error);
+
+  ctrl_gas0 &= 0xF7;
+
+  I2Chip::I2cWriteRegisterUInt8(BME680_CTRL_GAS0_REG, ctrl_gas0, address, buffer, error);
+}
+
 // Turn off current injected to heater.
 void Bme680::HeaterOff()
 {
-  I2Chip::I2cWriteRegisterUInt8(BME680_CTRL_GAS0_REG, 0x08, address, buffer, error);
+  uint8_t ctrl_gas0;
+
+  I2Chip::I2cWriteUInt8(BME680_CTRL_GAS0_REG, address, buffer, error);
+
+  ctrl_gas0 = I2Chip::I2cReadUInt8(address, buffer, error);
+      
+  ctrl_gas0 |= 0x08;
+
+  I2Chip::I2cWriteRegisterUInt8(BME680_CTRL_GAS0_REG, ctrl_gas0, address, buffer, error);
 }
 
 // Read chip calibration data and return true if success.
@@ -443,7 +500,65 @@ bool Bme680::GetCalibration()
           par_g2 = (int16_t)( (buffer[ 11 ] << 8) | buffer[ 10 ] );
           par_g1 = (int8_t)buffer[ 12 ];
 	  par_g2 = (int8_t)buffer[ 13 ];
-        }
+
+          I2Chip::I2cWriteUInt8(BME680_RANGE_SWITCHING_ERROR_REG, address, buffer, error);
+          if( error != 0 )
+          {
+            return false;
+          }
+          else
+          {
+            I2Chip::I2cReadBytes(1, address, buffer, error);
+
+            if( error != 0 )
+	    {
+              return false;
+            }
+            else
+            {
+              range_sw_error = ( (int8_t)buffer[ 0 ] ) / 16;
+
+              I2Chip::I2cWriteUInt8(BME680_RES_HEAT_RANGE_REG, address, buffer, error);
+              if( error != 0 )
+              {
+                return false;
+              }
+              else
+              {
+                I2Chip::I2cReadBytes(1, address, buffer, error);
+
+                if( error != 0 )
+                {
+                  return false;
+                }
+                else
+                {
+                  res_heat_range = (uint8_t)(buffer[ 0 ] >> 4);
+
+                  I2Chip::I2cWriteUInt8(BME680_RES_HEAT_VAL_REG, address, buffer, error);
+
+                  if( error != 0 )
+                  {
+                    return false;
+                  }
+                  else
+                  {
+                    I2Chip::I2cReadBytes(1, address, buffer, error);
+
+                    if( error != 0 )
+                    {
+                      return false;
+                    }
+                    else
+                    {
+                      res_heat_val  = (int8_t)buffer[ 0 ];
+                    }
+		  }
+		}
+	      }
+	    }
+	  }
+	}
       }
     }
   }
@@ -468,6 +583,9 @@ bool Bme680::GetCalibration()
   fprintf(stderr, SD_DEBUG "par_h5 = %d.", par_h5);
   fprintf(stderr, SD_DEBUG "par_h6 = %d.", par_h6);
   fprintf(stderr, SD_DEBUG "par_h7 = %d.", par_h7);
+  fprintf(stderr, SD_DEBUG "range_sw_error = %d.", range_sw_error);
+  fprintf(stderr, SD_DEBUG "res_heat_range = %d.", res_heat_range);
+  fprintf(stderr, SD_DEBUG "res_heat_val = %d.", res_heat_val);
 
   return true;
 }
@@ -475,14 +593,25 @@ bool Bme680::GetCalibration()
 // Read chip temperature, pressure, humidity and resistance registers and do conversion.
 int Bme680::GetTPHG()
 {
-  uint32_t tadc = 0;
+//  uint32_t tadc = 0;
   int64_t tvar1 = 0, tvar2 = 0, tvar3 = 0;
   int32_t p =0, pvar1 = 0, pvar2 = 0, pvar3 = 0;
-  uint32_t padc = 0;
-  uint16_t hadc = 0;
+//  uint32_t padc = 0;
+//  uint16_t hadc = 0;
   int32_t hvar1 = 0, hvar2 = 0, hvar3 = 0, hvar4 = 0, hvar5 = 0, hvar6 = 0;
   int32_t tscaled = 0, h = 0;
+//  uint16_t gadc = 0;
+  uint8_t grange = 0;
+  int8_t range_sw_error = 0;
+  int64_t gvar1 = 0;
+  uint64_t gvar2 = 0;
+
   int32_t tfine;
+
+  // gas range constants for resistance calculation
+  const uint32_t a1[16] = {2147483647, 2147483647, 2147483647, 2147483647, 2147483647, 2126008810, 2147483647, 2130303777, 2147483647, 2147483647, 2143188679, 2136746228, 2147483647, 2126008810, 2147483647, 2147483647};
+
+  const uint32_t a2[16] = {4096000000, 2048000000, 1024000000, 512000000, 255744255, 127110228, 64000000, 32258064, 16016016, 8000000, 4000000, 2000000, 1000000, 500000, 250000, 125000};
 
   I2Chip::I2cWriteUInt8(BME680_PRESS_MSB_REG, address, buffer, error);
   if( error != 0 )
@@ -491,7 +620,7 @@ int Bme680::GetTPHG()
   }
   else
   {
-    I2Chip::I2cReadBytes(10, address, buffer, error);
+    I2Chip::I2cReadBytes(8, address, buffer, error);
     if( error != 0 )
     {
       return error;
@@ -552,9 +681,48 @@ int Bme680::GetTPHG()
       h = (hvar3 + hvar6) >> 12;
       h = (((hvar3 + hvar6) >> 10) * ((int32_t) 1000)) >> 12;
       Humidity = (uint32_t)h;
+
+      I2Chip::I2cWriteUInt8(BME680_GAS_R_MSB_REG, address, buffer, error);
+      if( error != 0 )
+      {
+        return error;
+      }
+      else
+      {
+        I2Chip::I2cReadBytes(2, address, buffer, error);
+        if( error != 0 )
+        {
+          return error;
+        }
+        else
+        {
+          gadc =  (uint16_t)( buffer[ 0 ] << 2 );
+          gadc |= (uint16_t)( buffer[ 1 ] >> 6 ); 
+          grange = (uint8_t)( buffer[ 1 ] & 0x0F );
+
+          fprintf(stderr, SD_DEBUG "gadc = %d, grange = %d.", gadc, grange);
+
+          if( (buffer[ 9 ] & 0x20 ) == 0x20 ) gas_valid = true; 
+          else gas_valid = false;
+
+          if( gas_valid ) fprintf(stderr, SD_DEBUG "Gas conversion valid.");
+          else fprintf(stderr, SD_DEBUG "Gas conversion not valid.");
+
+          if( (buffer[ 9 ] & 0x10 ) == 0x10 ) heat_stab = true; 
+          else heat_stab = false;
+
+          if( heat_stab ) fprintf(stderr, SD_DEBUG "Heater stable.");
+          else fprintf(stderr, SD_DEBUG "Heater not stable.");
+
+          gvar1 = (int64_t)(((1340 + ( 5 * (int64_t)range_sw_error ) ) * ((int64_t)a1[ grange ] ) ) >> 16 );
+          gvar2 = (int64_t)( gadc << 15 ) - (int64_t)( 1 << 24) + gvar1;
+
+          Resistance = (uint32_t)((((int64_t)(a2[ grange ] * (int64_t)gvar1) >> 9 ) + (gvar2 >> 1) ) / gvar2);
+
+    	}
+      }
     }
   }
-
   return 0;
 }
 
