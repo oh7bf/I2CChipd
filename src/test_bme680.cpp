@@ -80,6 +80,7 @@ int main(int argc, char **argv)
   double T = 0;
   double p = 0;
   double H = 0;
+  double R = 0;
   uint8_t i = 0;
   int j = 0, k = 0;
   if( error != 0 )
@@ -179,16 +180,38 @@ int main(int argc, char **argv)
       cout << "-- filter 1\n";
       chip.SetFilter( 1 );
 
-//      chip.RunGas();
-//      chip.SetHeaterProfile( 0 );
-//      chip.SetGasWaitTime(0, 0x59);
-//      chip.SetGasHeatResistor(0, 1);
+      cout << "-- profile 0: 100 ms pulse, ambient 35 C, target 100 C\n";
+      chip.SetGasWaitTime(0, 0x59); // 100 ms
+      chip.SetGasHeatTemperature(0, 35, 100); // 35 C ambient, target 100 C
 
-      cout << "    T[C]      H[%]     p[Pa]     t[ms]\n";
-      for(j = 0; j < 10; j++)
+      cout << "-- profile 1: 100 ms pulse, ambient 35 C, target 150 C\n";
+      chip.SetGasWaitTime(1, 0x59); // 100 ms
+      chip.SetGasHeatTemperature(1, 35, 150); // 35 C ambient, target 150 C
+
+      cout << "-- profile 2: 100 ms pulse, ambient 35 C, target 200 C\n";
+      chip.SetGasWaitTime(2, 0x59); // 100 ms
+      chip.SetGasHeatTemperature(2, 35, 200); // 35 C ambient, target 200 C
+
+      cout << "-- profile 3: 100 ms pulse, ambient 35 C, target 250 C\n";
+      chip.SetGasWaitTime(3, 0x59); // 100 ms
+      chip.SetGasHeatTemperature(3, 35, 250); // 35 C ambient, target 250 C
+
+      cout << "-- profile 4: 100 ms pulse, ambient 35 C, target 300 C\n";
+      chip.SetGasWaitTime(4, 0x59); // 100 ms
+      chip.SetGasHeatTemperature(4, 35, 300); // 35 C ambient, target 300 C
+
+      chip.RunGas();
+      chip.HeaterOn();
+//	cout << (int)chip.GetGasControl1() << "\n";
+//        cout << (int)chip.GetGasControl0() << "\n";
+
+      cout << "Profile T[C]      H[%]     p[Pa]     R[ohm]    Valid    Stable  t[ms]\n";
+      for(j = 0; j < 5; j++)
       {
-        chip.Forced();
+        chip.SetHeaterProfile( j );
+	chip.Forced();
 
+	usleep( 200000 ); // 200 ms delay
 	k = 0;
         while( !chip.IsNewData() )
 	{
@@ -197,16 +220,27 @@ int main(int argc, char **argv)
         }
 
         chip.GetTPHG();
-        T = chip.GetTemperature();
+	T = chip.GetTemperature();
         p = chip.GetPressure();
         H = chip.GetHumidity();
+        R = chip.GetResistance();
+
 	cout << std::fixed;
-        cout << j << "   ";
+	cout << (int)chip.GetGasMeasIndex() << "       ";
         cout << std::setprecision(2) << T << "     ";
         cout << std::setprecision(2) << H << "    ";
-	cout << std::setprecision(0) << p << "     ";
-        cout << k << "\n";
-     }
+	cout << std::setprecision(0) << p << "   ";
+        cout << std::right << std::setw(8);
+	cout << std::setprecision(0) << R << "    ";
+        if( chip.GasValid() ) cout << "yes      "; else cout << "no      "; 
+        if( chip.HeaterStable() ) cout << "yes     "; else cout << "no      "; 
+	cout << k << "\n";
+
+//	cout << "-- ADC:  " << chip.GetTADC() << "   " << chip.GetHADC();
+//	cout << "   " << chip.GetpADC() << "   " << chip.GetRADC() << "\n";
+
+	sleep( 3 );
+      }
     }
   }
 
