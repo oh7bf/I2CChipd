@@ -15,6 +15,7 @@ MODULES       = I2Chip.o
 MODULES      += Tmp102.o
 MODULES      += Bmp280.o
 MODULES      += Bme680.o
+MODULES      += File.o
 MODULES      += i2chipd.o 
 
 %.o : %.cpp
@@ -31,7 +32,7 @@ test_bmp280: I2Chip.o Bmp280.o test_bmp280.o
 test_bme680: I2Chip.o Bme680.o test_bme680.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
-test_tmp102: I2Chip.o Tmp102.o test_tmp102.o
+test_tmp102: I2Chip.o File.o Tmp102.o test_tmp102.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:
