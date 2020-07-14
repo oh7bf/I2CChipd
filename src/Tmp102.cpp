@@ -256,29 +256,34 @@ void Tmp102::NormalMode()
 /// Read two bytes from chip and use least significant bit to determine
 /// normal or extended mode. SetPointer( 0 ) needs to be used before
 /// calling this function. 
-double Tmp102::GetTemperature()
+bool Tmp102::ReadTemperature()
 {
+  bool success = true;
   uint16_t data = 0;
   int16_t temp = 0;
-  double temperature = 0;
 
   data = I2Chip::I2cReadUInt16(address, buffer, error);
 
-  temp = (int16_t)data;
-
-  if( ( data & 1 ) == 0 )
+  if( error != 0 )
   {
-    temp /= 16;
-    temperature = (double)(temp * 0.0625);
+    success = false;
   }
   else
   {
-    temp /= 8;
-    temperature = (double)(temp * 0.0625);
+    temp = (int16_t)data;
+
+    if( ( data & 1 ) == 0 )
+    {
+      temp /= 16;
+      Temperature = (double)(temp * 0.0625);
+    }
+    else
+    {
+      temp /= 8;
+      Temperature = (double)(temp * 0.0625);
+    }
   }
 
-  if( error != 0 ) temp = -9999.9999;
-
-  return temperature;
+  return success;
 }
 

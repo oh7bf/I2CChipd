@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:33:30 CDT 2020
- * Edit: Mon Jul  6 15:44:03 CDT 2020
+ * Edit: Mon Jul 13 19:21:01 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -42,17 +42,19 @@
 class Tmp102 : public I2Chip 
 {
     std::string name;       ///< name tag for chip
-    std::string i2cdev;     ///< device file for writing and reading serial data
 
+    std::string i2cdev;     ///< device file for writing and reading serial data
     uint16_t address;       ///< I2C chip address
     int error;              ///< error flag for I2C communication
 
     /// buffer to transfer serial data to and from chip
     uint8_t buffer[ BUFFER_MAX ] = { };
 
-  public:
+    double Temperature;    ///< temperature from last reading
+
+   public:
     /// Construct Tmp102 object with parameters.
-    Tmp102(std::string name, std::string i2cdev, uint16_t address) : I2Chip(name, i2cdev, address) 
+    Tmp102(std::string name, std::string i2cdev, uint16_t address) : I2Chip(name, i2cdev, address)
    {
       this->name = name;
       this->i2cdev = i2cdev;
@@ -60,7 +62,7 @@ class Tmp102 : public I2Chip
    };
 
     /// Construct Tmp102 object with parameters.
-    Tmp102(std::string name, std::string i2cdev) : I2Chip(name, i2cdev, 0x48) 
+    Tmp102(std::string name, std::string i2cdev) : I2Chip(name, i2cdev, 0x48)
    {
       this->name = name;
       this->i2cdev = i2cdev;
@@ -79,6 +81,9 @@ class Tmp102 : public I2Chip
 
     /// Get last error number.
     int GetError() { return error; }
+
+    /// Get temperature value in Celcius from last reading. 
+    double GetTemperature() { return Temperature; }
 
     /// Get high limit register value.
     uint16_t GetHighLimit();
@@ -161,8 +166,8 @@ class Tmp102 : public I2Chip
     /// Normal mode.
     void NormalMode();
 
-    /// Read chip temperature register and return value in Celcius. 
-    double GetTemperature();
+    /// Read chip temperature register and return true if success.
+    bool ReadTemperature();
 
 };
 
