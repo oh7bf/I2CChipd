@@ -35,7 +35,7 @@
 
 using namespace std;
 
-/// I2Chip constructor to initialize all the parameters.
+/// I2Chip constructor to initialize all parameters.
 
 I2Chip::I2Chip(std::string name, std::string i2cdev, uint16_t address)
 {

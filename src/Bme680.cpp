@@ -293,8 +293,6 @@ void Bme680::SetGasHeatTemperature(uint8_t Profile, int Tamb, int T)
   I2Chip::I2cWriteRegisterUInt8(reg, heatres, address, buffer, error);
 }
 
-
-
 // Run gas conversions.
 void Bme680::RunGas()
 {
