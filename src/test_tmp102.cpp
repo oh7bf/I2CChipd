@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sun Jul  5 09:22:54 CDT 2020
- * Edit: Thu Jul  9 14:30:52 CDT 2020
+ * Edit: Mon Jul 13 17:01:42 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -89,6 +89,7 @@ int main(int argc, char **argv)
     cout << "THIGH = " << highlimit << "\n";
 
     chip->SetPointer( TMP102_TEMP_REG );
+    chip->ReadTemperature();
     cout << "-- temperature: " << chip->GetTemperature() << " C, ";
     cout << "I2C error flag: " << chip->GetError() << "\n";
     cout << "-- set extended mode\n";
@@ -96,6 +97,7 @@ int main(int argc, char **argv)
     chip->ExtendedMode();
     usleep(250000); // assume 4 Hz conversion rate
     chip->SetPointer( TMP102_TEMP_REG );
+    chip->ReadTemperature();
     cout << "-- temperature: " << chip->GetTemperature() << " C, ";
     cout << "I2C error flag: " << chip->GetError() << "\n";
 
@@ -103,6 +105,7 @@ int main(int argc, char **argv)
     chip->NormalMode();
     usleep(250000); // assume 4 Hz conversion rate
     chip->SetPointer( TMP102_TEMP_REG );
+    chip->ReadTemperature();
     cout << "-- temperature: " << chip->GetTemperature() << " C, ";
     cout << "I2C error flag: " << chip->GetError() << "\n";
 
@@ -170,13 +173,15 @@ int main(int argc, char **argv)
     chip->OneShot();
     usleep(50000);
     chip->SetPointer( 0 );
+
     cout << "-- temperature: " << chip->GetTemperature() << " C, ";
     cout << "I2C error flag: " << chip->GetError() << "\n";
-
+    chip->ReadTemperature();
     cout << "-- start continuos conversion and read temperature after 1 s\n";
     chip->Continuous();
     sleep(1);
     chip->SetPointer( 0 );
+    chip->ReadTemperature();
     cout << "-- temperature: " << chip->GetTemperature() << " C, ";
     cout << "I2C error flag: " << chip->GetError() << "\n";
 
@@ -184,7 +189,7 @@ int main(int argc, char **argv)
     chip->SetConfig( config );
     chip->SetLowLimit( lowlimit );
     chip->SetHighLimit( highlimit );
-
+    chip->SetPointer( 0 );
   }
 
   delete chip;
