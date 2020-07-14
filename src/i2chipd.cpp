@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: 
+ * Edit: Mon Jul 13 13:11:48 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -30,6 +30,7 @@
 #include "signal.h"
 #include <unistd.h>
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -54,29 +55,100 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  string name = "T1";
   string i2cdev = "/dev/i2c-1";
+  string datadir = "./";
+//  string datadir = "/var/lib/i2chipd/";
+
   int readinterval = 10;
 
   signal(SIGTERM, &shutdown);
   signal(SIGHUP, &reload);
 
-  Tmp102 chip = Tmp102(name, i2cdev);
+  Tmp102 tmp102 = Tmp102("T2", i2cdev);
 
-  chip.SetAddress0x48();
-  cout << "-- " << chip.GetName();
-  cout << " " << chip.GetDevice();
-  cout << " " << chip.GetAddress() << "\n";
- 
-  chip.SetPointer(TMP102_TEMP_REG);
+  tmp102.SetAddress0x48();
+  cout << "-- " << tmp102.GetName();
+  cout << " " << tmp102.GetDevice();
+  cout << " " << tmp102.GetAddress() << "\n";
+  tmp102.SetPointer(TMP102_TEMP_REG);
 
+  Bme680 bme680 = Bme680("T1", i2cdev);
+  bme680.SetAddress0x77();
+  cout << "-- " << bme680.GetName();
+  cout << " " << bme680.GetDevice();
+  cout << " " << bme680.GetAddress() << "\n";
+
+  cout << "-- read BME680 calibration data\n";
+  if( !bme680.GetCalibration() )
+  {
+    cout << "-- problem reading calibration data, quit now\n";
+    return -1;
+  }
+
+  cout << "-- 1 x H, 1 x T and 16 x p oversampling\n";
+  bme680.SetOverSample( 1, 2, 5);
+  cout << "-- filter 1\n";
+  bme680.SetFilter( 1 );
+  cout << "-- profile 0: 100 ms pulse, ambient 30 C, target 300 C\n";
+  bme680.SetGasWaitTime(0, 0x59); // 100 ms
+  bme680.SetGasHeatTemperature(0, 30, 300); // 30 C ambient, 300 C target
+  bme680.RunGas();
+  bme680.HeaterOn();
+  bme680.SetHeaterProfile( 0 );
+
+  File *tmp102_x48 = new File(datadir, "tmp102_x48");
+  File *bme680_x77_T = new File(datadir, "bme680_x77_T");
+  File *bme680_x77_p = new File(datadir, "bme680_x77_p");
+  File *bme680_x77_RH = new File(datadir, "bme680_x77_RH");
+  File *bme680_x77_R = new File(datadir, "bme680_x77_R");
+
+  double T = 0, RH = 0, p = 0, R = 0;
   while( cont )
   {
-    cout << chip.GetName() << " = " << chip.GetTemperature();
-    cout << " C, error = " << chip.GetError() << "\n";
- 
+    tmp102.ReadTemperature();
+    T = tmp102.GetTemperature();
+    tmp102_x48->Write( T );
+
+    cout << std::fixed;
+    cout << tmp102.GetName() << " = ";
+    cout << std::setw( 5 ) << std::setprecision( 2 ) << T; 
+    cout << " C, ";
+
+    bme680.Forced();
+    usleep( 200000 ); // 200 ms
+    bme680.GetTPHG();
+
+    T = bme680.GetTemperature();
+    RH = bme680.GetHumidity();
+    p = bme680.GetPressure();
+    R = bme680.GetResistance();
+
+    bme680_x77_T->Write( T );
+    bme680_x77_RH->Write( RH );
+    bme680_x77_p->Write( p );
+    bme680_x77_R->Write( R );
+
+    cout << bme680.GetName();
+    cout << " = ";
+    cout << std::setw( 5 ) << std::setprecision( 2 ) << T;
+    cout << " C, RH = ";
+    cout << std::setw( 5 ) << std::setprecision( 1 ) << RH;
+    cout << std::setprecision( 0 );
+    cout << " %, p = " << p;
+    cout << " Pa, R = " << R;
+    cout << " ohm";
+    if( bme680.GasValid() ) cout << " Y"; else cout << " N";
+    if( bme680.HeaterStable() ) cout << " Y"; else cout << " N";
+    cout << "\n";
+
     sleep( readinterval );
   }
+
+  delete tmp102_x48;
+  delete bme680_x77_T;
+  delete bme680_x77_RH;
+  delete bme680_x77_p;
+  delete bme680_x77_R;
 
   return 0;
 };

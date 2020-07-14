@@ -30,5 +30,8 @@
 #define _I2CHIPD_HPP
 
 #include "Tmp102.hpp"
+#include "Bmp280.hpp"
+#include "Bme680.hpp"
+#include "File.hpp"
 
 #endif
