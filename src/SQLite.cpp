@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Tue Jul 14 13:30:25 CDT 2020
- * Edit: 
+ * Edit: Wed Jul 15 10:34:02 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -53,7 +53,7 @@ std::string SQLite::GetDateTime(int & error)
 
   if( rc != SQLITE_OK )
   {
-    sprintf(message, "Can not open database: %s", sqlite3_errmsg( db ) );
+    sprintf(message, "Can not open database: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
     sqlite3_close( db );
@@ -65,7 +65,7 @@ std::string SQLite::GetDateTime(int & error)
 
   if( rc != SQLITE_OK )
   {
-    sprintf(message, "Statement prepare failed: %s", sqlite3_errmsg( db ) );
+    sprintf(message, "Statement prepare failed: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
     sqlite3_close( db );
@@ -79,7 +79,7 @@ std::string SQLite::GetDateTime(int & error)
       rc = sqlite3_step( stmt );
       if( rc != SQLITE_ROW )
       {
-        sprintf(message, "Statement failed: %s", sqlite3_errmsg( db ) );
+        sprintf(message, "Statement failed: %s\n", sqlite3_errmsg( db ) );
         fprintf(stderr, SD_ERR "%s", message);
         error = rc;
         sqlite3_close( db );
@@ -88,7 +88,7 @@ std::string SQLite::GetDateTime(int & error)
       }
       else
       {
-        sprintf(dtime, "%s", sqlite3_column_text(stmt, 0) );
+        sprintf(dtime, "%s\n", sqlite3_column_text(stmt, 0) );
         fprintf(stderr, SD_DEBUG "SQLite: %s", dtime);
         error = SQLITE_OK;
       }
@@ -110,7 +110,7 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
 
   if( rc != SQLITE_OK )
   {
-    sprintf(message, "Can not open database: %s", sqlite3_errmsg( db ) );
+    sprintf(message, "Can not open database: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
     sqlite3_close( db );
@@ -124,7 +124,7 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
 
   if( rc != SQLITE_OK )
   {
-    sprintf(message, "Statement prepare failed: %s", sqlite3_errmsg( db ) );
+    sprintf(message, "Statement prepare failed: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
     sqlite3_close( db );
@@ -137,7 +137,7 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
 
     if( rc != SQLITE_OK )
     {
-      sprintf(message, "Binding failed: %s", sqlite3_errmsg( db ) );
+      sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
       fprintf(stderr, SD_ERR "%s", message);
       error = rc;
       sqlite3_close( db );
@@ -152,7 +152,7 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
 
     	if( rc != SQLITE_OK )
         {
-          sprintf(message, "Binding failed: %s", sqlite3_errmsg( db ) );
+          sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
           fprintf(stderr, SD_ERR "%s", message);
           error = rc;
           sqlite3_close( db );
@@ -165,7 +165,7 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
 
   if( rc != SQLITE_DONE )
   {
-    sprintf(message, "Statement failed: %s", sqlite3_errmsg( db ) );
+    sprintf(message, "Statement failed: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
     sqlite3_close( db );
@@ -191,7 +191,7 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
   if( rc != SQLITE_OK )
   {
-    sprintf(message, "Can not open database: %s", sqlite3_errmsg( db ) );
+    sprintf(message, "Can not open database: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
     sqlite3_close( db );
@@ -205,7 +205,7 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
   if( rc != SQLITE_OK )
   {
-    sprintf(message, "Statement prepare failed: %s", sqlite3_errmsg( db ) );
+    sprintf(message, "Statement prepare failed: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
     sqlite3_close( db );
@@ -218,7 +218,7 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
     if( rc != SQLITE_OK )
     {
-      sprintf(message, "Binding failed: %s", sqlite3_errmsg( db ) );
+      sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
       fprintf(stderr, SD_ERR "%s", message);
       error = rc;
       sqlite3_close( db );
@@ -233,7 +233,7 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
     	if( rc != SQLITE_OK )
         {
-          sprintf(message, "Binding failed: %s", sqlite3_errmsg( db ) );
+          sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
           fprintf(stderr, SD_ERR "%s", message);
           error = rc;
           sqlite3_close( db );
@@ -246,7 +246,7 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
     	if( rc != SQLITE_OK )
         {
-          sprintf(message, "Binding failed: %s", sqlite3_errmsg( db ) );
+          sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
           fprintf(stderr, SD_ERR "%s", message);
           error = rc;
           sqlite3_close( db );
@@ -259,7 +259,7 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
   if( rc != SQLITE_DONE )
   {
-    sprintf(message, "Statement failed: %s", sqlite3_errmsg( db ) );
+    sprintf(message, "Statement failed: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
     sqlite3_close( db );
