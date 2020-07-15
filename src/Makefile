@@ -16,6 +16,7 @@ MODULES      += Tmp102.o
 MODULES      += Bmp280.o
 MODULES      += Bme680.o
 MODULES      += File.o
+MODULES      += SQLite.o
 MODULES      += i2chipd.o 
 
 %.o : %.cpp
@@ -24,7 +25,7 @@ MODULES      += i2chipd.o
 all: i2chipd test_bmp280 test_bme680 test_tmp102 
 
 i2chipd: $(MODULES) 
-	$(LD) $(LDFLAGS) $^ -o $@
+	$(LD) $(LDFLAGS) -lsqlite3 $^ -o $@
 
 test_bmp280: I2Chip.o Bmp280.o test_bmp280.o
 	$(LD) $(LDFLAGS) $^ -o $@
