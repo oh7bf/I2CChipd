@@ -33,5 +33,6 @@
 #include "Bmp280.hpp"
 #include "Bme680.hpp"
 #include "File.hpp"
+#include "SQLite.hpp"
 
 #endif

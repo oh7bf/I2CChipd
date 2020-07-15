@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Mon Jul 13 13:11:48 CDT 2020
+ * Edit: Tue Jul 14 19:54:31 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -58,13 +58,14 @@ int main()
   string i2cdev = "/dev/i2c-1";
   string datadir = "./";
 //  string datadir = "/var/lib/i2chipd/";
+  string sqlitedb = "/var/lib/i2chipd/i2chipd.db";
 
   int readinterval = 10;
 
   signal(SIGTERM, &shutdown);
   signal(SIGHUP, &reload);
 
-  Tmp102 tmp102 = Tmp102("T2", i2cdev);
+  Tmp102 tmp102 = Tmp102("T1", i2cdev);
 
   tmp102.SetAddress0x48();
   cout << "-- " << tmp102.GetName();
@@ -72,7 +73,7 @@ int main()
   cout << " " << tmp102.GetAddress() << "\n";
   tmp102.SetPointer(TMP102_TEMP_REG);
 
-  Bme680 bme680 = Bme680("T1", i2cdev);
+  Bme680 bme680 = Bme680("TpHG1", i2cdev);
   bme680.SetAddress0x77();
   cout << "-- " << bme680.GetName();
   cout << " " << bme680.GetDevice();
@@ -102,12 +103,26 @@ int main()
   File *bme680_x77_RH = new File(datadir, "bme680_x77_RH");
   File *bme680_x77_R = new File(datadir, "bme680_x77_R");
 
+  int sqlite_err = 0;
+  SQLite *tmp102_x48_db  = new SQLite(sqlitedb, "tmp102", "insert into tmp102 (name,temperature) values (?,?)");
+  cout << "-- SQLite file: " << tmp102_x48_db->GetFile() << "\n";
+  cout << "-- SQLite table: " << tmp102_x48_db->GetTable() << "\n";
+  cout << "-- SQLite datetime(): " << tmp102_x48_db->GetDateTime( sqlite_err ) << "\n";
+  cout << "-- SQLite error: " << sqlite_err << "\n";
+
+  SQLite *bme680_x77_db  = new SQLite(sqlitedb, "bme680", "insert into bme680 (name,temperature,humidity,pressure,resistance,gasvalid,stable) values (?,?,?,?,?,?,?)");
+
   double T = 0, RH = 0, p = 0, R = 0;
+  double dbl_array[ 10 ];
+  int int_array[ 10 ];
   while( cont )
   {
     tmp102.ReadTemperature();
     T = tmp102.GetTemperature();
     tmp102_x48->Write( T );
+    dbl_array[ 0 ] = T;
+    tmp102_x48_db->Insert("T1", 1, dbl_array, sqlite_err );
+    if( sqlite_err != SQLITE_OK ) cout << "-- error writing SQLite database\n";
 
     cout << std::fixed;
     cout << tmp102.GetName() << " = ";
@@ -127,6 +142,15 @@ int main()
     bme680_x77_RH->Write( RH );
     bme680_x77_p->Write( p );
     bme680_x77_R->Write( R );
+
+    dbl_array[ 0 ] = T;
+    dbl_array[ 1 ] = RH;
+    dbl_array[ 2 ] = p;
+    dbl_array[ 3 ] = R;
+    int_array[ 0 ] = (int)bme680.GasValid();
+    int_array[ 1 ] = (int)bme680.HeaterStable();
+
+    bme680_x77_db->Insert("TpHG1", 4, dbl_array, 2, int_array, sqlite_err);
 
     cout << bme680.GetName();
     cout << " = ";
@@ -149,6 +173,9 @@ int main()
   delete bme680_x77_RH;
   delete bme680_x77_p;
   delete bme680_x77_R;
+
+  delete tmp102_x48_db;
+  delete bme680_x77_db;
 
   return 0;
 };
