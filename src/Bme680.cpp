@@ -487,8 +487,8 @@ bool Bme680::GetCalibration()
         }
         else
         {
-          par_h1 = (uint16_t)( buffer[ 2 ] << 8 | buffer[ 1 ] );
-          par_h2 = (uint16_t)( (buffer[ 0 ] << 8) | buffer[ 1 ] );
+          par_h1 = (uint16_t)( buffer[ 2 ] << 4 | ( buffer[ 1 ] & 0x0F ) );
+          par_h2 = (uint16_t)( (buffer[ 0 ] << 4) | ( buffer[ 1 ] >> 4 ) );
           par_h3 = (int8_t)buffer[ 3 ];
           par_h4 = (int8_t)buffer[ 4 ];
           par_h5 = (int8_t)buffer[ 5 ];
@@ -497,7 +497,7 @@ bool Bme680::GetCalibration()
           par_t1 = (int16_t)( (buffer[ 9 ] << 8) | buffer[ 8 ] );
           par_g2 = (int16_t)( (buffer[ 11 ] << 8) | buffer[ 10 ] );
           par_g1 = (int8_t)buffer[ 12 ];
-	  par_g2 = (int8_t)buffer[ 13 ];
+	  par_g3 = (int8_t)buffer[ 13 ];
 
           I2Chip::I2cWriteUInt8(BME680_RANGE_SWITCHING_ERROR_REG, address, buffer, error);
           if( error != 0 )
