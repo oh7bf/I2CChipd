@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 15:57:37 CDT 2020
- * Edit: 
+ * Edit: Wed Jul 15 08:59:36 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -63,7 +63,7 @@ uint8_t I2Chip::I2cReadUInt8(uint16_t address, uint8_t *buffer, int & error)
   if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s\n", message);
     error = -1;
     return 0;
   }
@@ -82,7 +82,7 @@ uint8_t I2Chip::I2cReadUInt8(uint16_t address, uint8_t *buffer, int & error)
   if( rd )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s\n", message);
     close( fd );
     error = -2;
     return 0;
@@ -91,19 +91,19 @@ uint8_t I2Chip::I2cReadUInt8(uint16_t address, uint8_t *buffer, int & error)
   if( ioctl(fd, I2C_SLAVE, address) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s\n", message);
     close( fd );
     error = -3;
     return 0;
   }
 
-  sprintf(message, "I2C[%02X] read", address);
+  sprintf(message, "I2C[%02X] read\n", address);
   fprintf(stderr, SD_DEBUG "%s", message);
 
   if( read(fd, buffer, 1) != 1 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to read from slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to read from slave. %s\n", message);
     close( fd );
     error = -4;
     return 0;
@@ -111,7 +111,7 @@ uint8_t I2Chip::I2cReadUInt8(uint16_t address, uint8_t *buffer, int & error)
   else
   {
     rdata = buffer[ 0 ];
-    sprintf(message, "I2C received [%02X] (%d)", buffer[0], rdata);
+    sprintf(message, "I2C received [%02X] (%d)\n", buffer[0], rdata);
     fprintf(stderr, SD_DEBUG "%s", message);
   }
 
@@ -138,7 +138,7 @@ uint16_t I2Chip::I2cReadUInt16(uint16_t address, uint8_t *buffer, int & error)
   if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s\n", message);
     error = -1;
     return 0;
   }
@@ -157,7 +157,7 @@ uint16_t I2Chip::I2cReadUInt16(uint16_t address, uint8_t *buffer, int & error)
   if( rd )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s\n", message);
     close( fd );
     error = -2;
     return 0;
@@ -166,19 +166,19 @@ uint16_t I2Chip::I2cReadUInt16(uint16_t address, uint8_t *buffer, int & error)
   if( ioctl(fd, I2C_SLAVE, address) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s\n", message);
     close( fd );
     error = -3;
     return 0;
   }
 
-  sprintf(message, "I2C[%02X] read", address);
+  sprintf(message, "I2C[%02X] read\n", address);
   fprintf(stderr, SD_DEBUG "%s", message);
 
   if( read(fd, buffer, 2) != 2 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to read from slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to read from slave. %s\n", message);
     close( fd );
     error = -4;
     return 0;
@@ -186,7 +186,7 @@ uint16_t I2Chip::I2cReadUInt16(uint16_t address, uint8_t *buffer, int & error)
   else
   {
     rdata = 256*buffer[ 0 ] + buffer[ 1 ];
-    sprintf(message, "I2C received [%02X %02X] (%d)", buffer[0], buffer[1], rdata);
+    sprintf(message, "I2C received [%02X %02X] (%d)\n", buffer[0], buffer[1], rdata);
     fprintf(stderr, SD_DEBUG "%s", message);
   }
 
@@ -213,7 +213,7 @@ uint32_t I2Chip::I2cReadUInt32(uint16_t address, uint8_t *buffer, int & error)
   if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s\n", message);
     error = -1;
     return 0;
   }
@@ -232,7 +232,7 @@ uint32_t I2Chip::I2cReadUInt32(uint16_t address, uint8_t *buffer, int & error)
   if( rd )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s\n", message);
     close( fd );
     error = -2;
     return 0;
@@ -241,19 +241,19 @@ uint32_t I2Chip::I2cReadUInt32(uint16_t address, uint8_t *buffer, int & error)
   if( ioctl(fd, I2C_SLAVE, address) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s\n", message);
     close( fd );
     error = -3;
     return 0;
   }
 
-  sprintf(message, "I2C[%02X] read", address);
+  sprintf(message, "I2C[%02X] read\n", address);
   fprintf(stderr, SD_DEBUG "%s", message);
 
   if( read(fd, buffer, 4) != 4 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to read from slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to read from slave. %s\n", message);
     close( fd );
     error = -4;
     return 0;
@@ -261,7 +261,7 @@ uint32_t I2Chip::I2cReadUInt32(uint16_t address, uint8_t *buffer, int & error)
   else
   {
     rdata = 16777216 * buffer[ 0 ] + 65536 * buffer[ 1 ] + 256 * buffer[ 2 ] + buffer[ 3 ];
-    sprintf(message, "I2C received [%02X %02X %02X %02X] (%d)", buffer[0], buffer[1], buffer[2], buffer[3], rdata);
+    sprintf(message, "I2C received [%02X %02X %02X %02X] (%d)\n", buffer[0], buffer[1], buffer[2], buffer[3], rdata);
     fprintf(stderr, SD_DEBUG "%s", message);
   }
 
@@ -285,7 +285,7 @@ void I2Chip::I2cReadBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & e
 
   if( Nbytes > BUFFER_MAX )
   { 
-    sprintf(message, "%d is more than I2C read buffer size.", Nbytes);
+    sprintf(message, "%d is more than I2C read buffer size.\n", Nbytes);
     fprintf(stderr, SD_ERR "%s", message);
     error = -6;
     return;
@@ -294,7 +294,7 @@ void I2Chip::I2cReadBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & e
   if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s\n", message);
     error = -1;
     return;
   }
@@ -313,7 +313,7 @@ void I2Chip::I2cReadBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & e
   if( rd )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s\n", message);
     close( fd );
     error = -2;
     return;
@@ -322,19 +322,19 @@ void I2Chip::I2cReadBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & e
   if( ioctl(fd, I2C_SLAVE, address) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s\n", message);
     close( fd );
     error = -3;
     return;
   }
 
-  sprintf(message, "I2C[%02X] read", address);
+  sprintf(message, "I2C[%02X] read\n", address);
   fprintf(stderr, SD_DEBUG "%s", message);
 
   if( read(fd, buffer, Nbytes) != Nbytes )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to read from slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to read from slave. %s\n", message);
     close( fd );
     error = -4;
     return;
@@ -344,7 +344,7 @@ void I2Chip::I2cReadBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & e
     sprintf(message, "I2C received [");
     if( Nbytes > 160 ) Nbytes = 160;
     for(int i = 0; i < Nbytes; i++ ) sprintf(message + strlen(message), "%02X ", buffer[ i ]);
-    sprintf(message + strlen(message), "]");
+    sprintf(message + strlen(message), "]\n");
     fprintf(stderr, SD_DEBUG "%s", message);
   }
 
@@ -369,7 +369,7 @@ void I2Chip::I2cWriteUInt8(uint8_t data, uint16_t address, uint8_t *buffer, int 
   if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s\n", message);
     error = -1;
     return;
   }
@@ -388,7 +388,7 @@ void I2Chip::I2cWriteUInt8(uint8_t data, uint16_t address, uint8_t *buffer, int 
  if( rd )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open i2c port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open i2c port. %s\n", message);
     close( fd );
     return;
   }
@@ -396,20 +396,20 @@ void I2Chip::I2cWriteUInt8(uint8_t data, uint16_t address, uint8_t *buffer, int 
   if( ioctl(fd, I2C_SLAVE, address) < 0 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s\n", message);
     close( fd );
     error = -3;
     return;
   }
 
   buffer[ 0 ] = data; 
-  sprintf(message, "I2C[%02X] write byte [%02X]", address, buffer[ 0 ] );
+  sprintf(message, "I2C[%02X] write byte [%02X]\n", address, buffer[ 0 ] );
   fprintf(stderr, SD_DEBUG "%s", message);
 
   if( write(fd, buffer, 1) != 1 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s", message);
+    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s\n", message);
     close( fd );
     error = -4;
     return;
@@ -438,7 +438,7 @@ void I2Chip::I2cWriteRegisterUInt8(uint8_t reg, uint8_t data, uint16_t address, 
   if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s\n", message);
     error = -1;
     return;
   }
@@ -457,7 +457,7 @@ void I2Chip::I2cWriteRegisterUInt8(uint8_t reg, uint8_t data, uint16_t address, 
  if( rd )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open i2c port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open i2c port. %s\n", message);
     close( fd );
     return;
   }
@@ -465,7 +465,7 @@ void I2Chip::I2cWriteRegisterUInt8(uint8_t reg, uint8_t data, uint16_t address, 
   if( ioctl(fd, I2C_SLAVE, address) < 0 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s\n", message);
     close( fd );
     error = -3;
     return;
@@ -474,13 +474,13 @@ void I2Chip::I2cWriteRegisterUInt8(uint8_t reg, uint8_t data, uint16_t address, 
   buffer[ 0 ] = reg; 
   buffer[ 1 ] = data;
 
-  sprintf(message, "I2C[%02X] write byte [%02X] to register [%02X]", address, buffer[ 1 ], buffer[ 0 ] );
+  sprintf(message, "I2C[%02X] write byte [%02X] to register [%02X]\n", address, buffer[ 1 ], buffer[ 0 ] );
   fprintf(stderr, SD_DEBUG "%s", message);
 
   if( write(fd, buffer, 3) != 3 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s", message);
+    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s\n", message);
     close( fd );
     error = -4;
     return;
@@ -509,7 +509,7 @@ void I2Chip::I2cWriteRegisterUInt16(uint8_t reg, uint16_t data, uint16_t address
   if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s\n", message);
     error = -1;
     return;
   }
@@ -528,7 +528,7 @@ void I2Chip::I2cWriteRegisterUInt16(uint8_t reg, uint16_t data, uint16_t address
  if( rd )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open i2c port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open i2c port. %s\n", message);
     close( fd );
     return;
   }
@@ -536,7 +536,7 @@ void I2Chip::I2cWriteRegisterUInt16(uint8_t reg, uint16_t data, uint16_t address
   if( ioctl(fd, I2C_SLAVE, address) < 0 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s\n", message);
     close( fd );
     error = -3;
     return;
@@ -546,13 +546,13 @@ void I2Chip::I2cWriteRegisterUInt16(uint8_t reg, uint16_t data, uint16_t address
   buffer[ 1 ] = (uint8_t)(( data & 0xFF00 ) >> 8); 
   buffer[ 2 ] = (uint8_t)( data & 0x00FF ); 
 
-  sprintf(message, "I2C[%02X] write bytes [%02X %02X] to register [%02X]", address, buffer[ 1 ], buffer[ 2 ], buffer[ 0 ] );
+  sprintf(message, "I2C[%02X] write bytes [%02X %02X] to register [%02X]\n", address, buffer[ 1 ], buffer[ 2 ], buffer[ 0 ] );
   fprintf(stderr, SD_DEBUG "%s", message);
 
   if( write(fd, buffer, 3) != 3 ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s", message);
+    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s\n", message);
     close( fd );
     error = -4;
     return;
@@ -578,7 +578,7 @@ void I2Chip::I2cWriteBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & 
 
   if( Nbytes > BUFFER_MAX )
   { 
-    sprintf(message, "%d is more than I2C write buffer size.", Nbytes);
+    sprintf(message, "%d is more than I2C write buffer size.\n", Nbytes);
     fprintf(stderr, SD_ERR "%s", message);
     error = -6;
     return;
@@ -587,7 +587,7 @@ void I2Chip::I2cWriteBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & 
   if( ( fd = open(i2cdev.c_str(), O_RDWR) ) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to open I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to open I2C port. %s\n", message);
     error = -1;
     return;
   }
@@ -606,7 +606,7 @@ void I2Chip::I2cWriteBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & 
   if( rd )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s", message);
+    fprintf(stderr, SD_ERR "Failed to lock I2C port. %s\n", message);
     close( fd );
     error = -2;
     return;
@@ -615,7 +615,7 @@ void I2Chip::I2cWriteBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & 
   if( ioctl(fd, I2C_SLAVE, address) < 0 )
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s", message);
+    fprintf(stderr, SD_ERR "Unable to get bus access to talk to slave. %s\n", message);
     close( fd );
     error = -3;
     return;
@@ -627,7 +627,7 @@ void I2Chip::I2cWriteBytes(int Nbytes, uint16_t address, uint8_t *buffer, int & 
   if( write(fd, buffer, Nbytes) != Nbytes ) 
   {
     strncpy(message, strerror( errno ), 400);
-    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s", message);
+    fprintf(stderr, SD_ERR "Error writing to I2C slave. %s\n", message);
     close( fd );
     error = -4;
     return;

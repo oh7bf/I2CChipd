@@ -12,7 +12,9 @@ Test the code with
 ./i2chipd 2> /dev/null
 ```
 
-The standard error is used for systemd-journald logging.
+The standard error is used for systemd-journald logging. For example
+
+journalctl -u i2chipd.service --follow -p info
 
 To create class documentation run *doxygen* without options on command line.
 

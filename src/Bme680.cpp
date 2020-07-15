@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Thu Jul  9 15:23:16 CDT 2020
- * Edit: 
+ * Edit: Wed Jul 15 09:08:40 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -288,7 +288,7 @@ void Bme680::SetGasHeatTemperature(uint8_t Profile, int Tamb, int T)
   heatresx100 = (int32_t)((( var4 / var5 ) - 250 ) * 34 );
   heatres = (uint8_t)(( heatresx100 + 50) / 100);
 
-  fprintf(stderr, SD_DEBUG "res_heat_%d = %d.", Profile, heatres);
+  fprintf(stderr, SD_DEBUG "res_heat_%d = %d\n", Profile, heatres);
   
   I2Chip::I2cWriteRegisterUInt8(reg, heatres, address, buffer, error);
 }
@@ -561,29 +561,29 @@ bool Bme680::GetCalibration()
     }
   }
 
-  fprintf(stderr, SD_DEBUG "par_t1 = %d.", par_t1);
-  fprintf(stderr, SD_DEBUG "par_t2 = %d.", par_t2);
-  fprintf(stderr, SD_DEBUG "par_t3 = %d.", par_t3);
-  fprintf(stderr, SD_DEBUG "par_p1 = %d.", par_p1);
-  fprintf(stderr, SD_DEBUG "par_p2 = %d.", par_p2);
-  fprintf(stderr, SD_DEBUG "par_p3 = %d.", par_p3);
-  fprintf(stderr, SD_DEBUG "par_p4 = %d.", par_p4);
-  fprintf(stderr, SD_DEBUG "par_p5 = %d.", par_p5);
-  fprintf(stderr, SD_DEBUG "par_p6 = %d.", par_p6);
-  fprintf(stderr, SD_DEBUG "par_p7 = %d.", par_p7);
-  fprintf(stderr, SD_DEBUG "par_p8 = %d.", par_p8);
-  fprintf(stderr, SD_DEBUG "par_p9 = %d.", par_p9);
-  fprintf(stderr, SD_DEBUG "par_p10 = %d.", par_p10);
-  fprintf(stderr, SD_DEBUG "par_h1 = %d.", par_h1);
-  fprintf(stderr, SD_DEBUG "par_h2 = %d.", par_h2);
-  fprintf(stderr, SD_DEBUG "par_h3 = %d.", par_h3);
-  fprintf(stderr, SD_DEBUG "par_h4 = %d.", par_h4);
-  fprintf(stderr, SD_DEBUG "par_h5 = %d.", par_h5);
-  fprintf(stderr, SD_DEBUG "par_h6 = %d.", par_h6);
-  fprintf(stderr, SD_DEBUG "par_h7 = %d.", par_h7);
-  fprintf(stderr, SD_DEBUG "range_sw_error = %d.", range_sw_error);
-  fprintf(stderr, SD_DEBUG "res_heat_range = %d.", res_heat_range);
-  fprintf(stderr, SD_DEBUG "res_heat_val = %d.", res_heat_val);
+  fprintf(stderr, SD_DEBUG "par_t1 = %d\n", par_t1);
+  fprintf(stderr, SD_DEBUG "par_t2 = %d\n", par_t2);
+  fprintf(stderr, SD_DEBUG "par_t3 = %d\n", par_t3);
+  fprintf(stderr, SD_DEBUG "par_p1 = %d\n", par_p1);
+  fprintf(stderr, SD_DEBUG "par_p2 = %d\n", par_p2);
+  fprintf(stderr, SD_DEBUG "par_p3 = %d\n", par_p3);
+  fprintf(stderr, SD_DEBUG "par_p4 = %d\n", par_p4);
+  fprintf(stderr, SD_DEBUG "par_p5 = %d\n", par_p5);
+  fprintf(stderr, SD_DEBUG "par_p6 = %d\n", par_p6);
+  fprintf(stderr, SD_DEBUG "par_p7 = %d\n", par_p7);
+  fprintf(stderr, SD_DEBUG "par_p8 = %d\n", par_p8);
+  fprintf(stderr, SD_DEBUG "par_p9 = %d\n", par_p9);
+  fprintf(stderr, SD_DEBUG "par_p10 = %d\n", par_p10);
+  fprintf(stderr, SD_DEBUG "par_h1 = %d\n", par_h1);
+  fprintf(stderr, SD_DEBUG "par_h2 = %d\n", par_h2);
+  fprintf(stderr, SD_DEBUG "par_h3 = %d\n", par_h3);
+  fprintf(stderr, SD_DEBUG "par_h4 = %d\n", par_h4);
+  fprintf(stderr, SD_DEBUG "par_h5 = %d\n", par_h5);
+  fprintf(stderr, SD_DEBUG "par_h6 = %d\n", par_h6);
+  fprintf(stderr, SD_DEBUG "par_h7 = %d\n", par_h7);
+  fprintf(stderr, SD_DEBUG "range_sw_error = %d\n", range_sw_error);
+  fprintf(stderr, SD_DEBUG "res_heat_range = %d\n", res_heat_range);
+  fprintf(stderr, SD_DEBUG "res_heat_val = %d\n", res_heat_val);
 
   return true;
 }
@@ -629,7 +629,7 @@ int Bme680::GetTPHG()
       tadc |= (uint32_t)( buffer[ 4 ] << 4 ); 
       tadc |= (uint32_t)( buffer[ 5 ] >> 4 ); 
 
-      fprintf(stderr, SD_DEBUG "tadc = %d.", tadc);
+      fprintf(stderr, SD_DEBUG "tadc = %d\n", tadc);
 
       tvar1 = ( (int32_t)tadc >> 3 ) - ( (int32_t)par_t1 << 1);
       tvar2 = (tvar1 * (int32_t)par_t2 ) >> 11;
@@ -642,7 +642,7 @@ int Bme680::GetTPHG()
       padc |= (uint32_t)( buffer[ 1 ] << 4 ); 
       padc |= (uint32_t)( buffer[ 2 ] >> 4 ); 
 
-      fprintf(stderr, SD_DEBUG "padc = %d.", padc);
+      fprintf(stderr, SD_DEBUG "padc = %d\n", padc);
 
       pvar1 = ((int32_t)tfine >> 1) - 64000;
       pvar2 = ((((pvar1 >> 2) * (pvar1 >> 2)) >> 11) * (int32_t)par_p6) >> 2;
@@ -667,7 +667,7 @@ int Bme680::GetTPHG()
       hadc =  (uint16_t)( buffer[ 6 ] << 8 );
       hadc |= (uint16_t)( buffer[ 7 ] ); 
 
-      fprintf(stderr, SD_DEBUG "hadc = %d.", hadc);
+      fprintf(stderr, SD_DEBUG "hadc = %d\n", hadc);
 
       tscaled = (int32_t)Temperature;
       hvar1 = (int32_t)hadc - (int32_t)((int32_t)par_h1 << 4 ) - (((tscaled * (int32_t)par_h3) / ((int32_t)100)) >> 1);
@@ -698,19 +698,19 @@ int Bme680::GetTPHG()
           gadc |= (uint16_t)( buffer[ 1 ] >> 6 ); 
           grange = (uint8_t)( buffer[ 1 ] & 0x0F );
 
-          fprintf(stderr, SD_DEBUG "gadc = %d, grange = %d.", gadc, grange);
+          fprintf(stderr, SD_DEBUG "gadc = %d, grange = %d\n", gadc, grange);
 
           if( (buffer[ 9 ] & 0x20 ) == 0x20 ) gas_valid = true; 
           else gas_valid = false;
 
-          if( gas_valid ) fprintf(stderr, SD_DEBUG "Gas conversion valid.");
-          else fprintf(stderr, SD_DEBUG "Gas conversion not valid.");
+          if( gas_valid ) fprintf(stderr, SD_DEBUG "Gas conversion valid\n");
+          else fprintf(stderr, SD_DEBUG "Gas conversion not valid\n");
 
           if( (buffer[ 9 ] & 0x10 ) == 0x10 ) heat_stab = true; 
           else heat_stab = false;
 
-          if( heat_stab ) fprintf(stderr, SD_DEBUG "Heater stable.");
-          else fprintf(stderr, SD_DEBUG "Heater not stable.");
+          if( heat_stab ) fprintf(stderr, SD_DEBUG "Heater stable\n");
+          else fprintf(stderr, SD_DEBUG "Heater not stable\n");
 
           gvar1 = (int64_t)(((1340 + ( 5 * (int64_t)range_sw_error ) ) * ((int64_t)a1[ grange ] ) ) >> 16 );
           gvar2 = (int64_t)( gadc << 15 ) - (int64_t)( 1 << 24) + gvar1;
