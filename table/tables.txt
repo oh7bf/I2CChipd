@@ -1,0 +1,34 @@
+
+SQLite local database storage
+-----------------------------
+
+Documentation from http://www.sqlite.org/
+
+create table bme680(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+temperature real,
+humidity real,
+pressure real,
+resistance real,
+gasvalid integer,
+stable integer
+);
+
+create table bmp280(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+temperature real,
+pressure real
+);
+
+create table tmp102(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+temperature real
+);
+
+
