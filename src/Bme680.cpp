@@ -273,14 +273,14 @@ void Bme680::SetGasHeatCurrent(uint8_t Profile, uint8_t I)
 }
 
 // Set gas heater temperature profile 0 - 9.
-void Bme680::SetGasHeatTemperature(uint8_t Profile, int Tamb, int T)
+void Bme680::SetGasHeatTemperature(uint8_t Profile, int8_t Tamb, uint16_t T)
 {
   uint8_t reg = BME680_GAS_RES_HEAT_REG + Profile;;
   uint8_t heatres = 0;
   int32_t var1 = 0, var2 = 0, var3 = 0, var4 = 0, var5 = 0;
   int32_t heatresx100 = 0; 
 
-  var1 = (((int32_t)Tamb * par_g3) / 10 ) << 8;
+  var1 = (((int32_t)Tamb * par_g3) / 1000 ) << 8;
   var2 = (par_g1 + 784) * (((((par_g2 + 154009) * T * 5) / 100) + 3276800) / 10);
   var3 = var1 + (var2 >> 1);
   var4 = ( var3 / (res_heat_range + 4 ) );
@@ -581,6 +581,9 @@ bool Bme680::GetCalibration()
   fprintf(stderr, SD_DEBUG "par_h5 = %d\n", par_h5);
   fprintf(stderr, SD_DEBUG "par_h6 = %d\n", par_h6);
   fprintf(stderr, SD_DEBUG "par_h7 = %d\n", par_h7);
+  fprintf(stderr, SD_DEBUG "par_g1 = %d\n", par_g1);
+  fprintf(stderr, SD_DEBUG "par_g2 = %d\n", par_g2);
+  fprintf(stderr, SD_DEBUG "par_g3 = %d\n", par_g3);
   fprintf(stderr, SD_DEBUG "range_sw_error = %d\n", range_sw_error);
   fprintf(stderr, SD_DEBUG "res_heat_range = %d\n", res_heat_range);
   fprintf(stderr, SD_DEBUG "res_heat_val = %d\n", res_heat_val);
@@ -700,13 +703,13 @@ int Bme680::GetTPHG()
 
           fprintf(stderr, SD_DEBUG "gadc = %d, grange = %d\n", gadc, grange);
 
-          if( (buffer[ 9 ] & 0x20 ) == 0x20 ) gas_valid = true; 
+          if( (buffer[ 1 ] & 0x20 ) == 0x20 ) gas_valid = true; 
           else gas_valid = false;
 
           if( gas_valid ) fprintf(stderr, SD_DEBUG "Gas conversion valid\n");
           else fprintf(stderr, SD_DEBUG "Gas conversion not valid\n");
 
-          if( (buffer[ 9 ] & 0x10 ) == 0x10 ) heat_stab = true; 
+          if( (buffer[ 1 ] & 0x10 ) == 0x10 ) heat_stab = true; 
           else heat_stab = false;
 
           if( heat_stab ) fprintf(stderr, SD_DEBUG "Heater stable\n");

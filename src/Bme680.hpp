@@ -295,7 +295,7 @@ class Bme680 : public I2Chip
     void SetGasHeatResistor(uint8_t Profile, uint8_t R);
 
     /// Set gas heater temperature profile 0 - 9.
-    void SetGasHeatTemperature(uint8_t Profile, int Tamb, int T);
+    void SetGasHeatTemperature(uint8_t Profile, int8_t Tamb, uint16_t T);
 
     /// Set gas heater current bytes 0 - 9.
     void SetGasHeatCurrent(uint8_t Profile, uint8_t I);
