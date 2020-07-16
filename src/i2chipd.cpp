@@ -55,6 +55,9 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
+  const uint16_t T0 = 300; // profile 0 target temperature for BME680
+  int8_t Tamb = 25; // ambient temperature for BME680 [C]
+
   string i2cdev = "/dev/i2c-1";
   string datadir = "/var/lib/i2chipd/";
   string sqlitedb = "/var/lib/i2chipd/i2chipd.db";
@@ -97,9 +100,9 @@ int main()
   fprintf(stderr, SD_INFO "filter 1\n");
   bme680.SetFilter( 1 );
 
-  fprintf(stderr, SD_INFO "profile 0: 100 ms pulse, ambient 30 C, target 300 C\n");
+  fprintf(stderr, SD_INFO "profile 0: 100 ms pulse, ambient %d C, target %d C\n", Tamb, T0);
   bme680.SetGasWaitTime(0, 0x59); // 100 ms
-  bme680.SetGasHeatTemperature(0, 30, 300); // 30 C ambient, 300 C target
+  bme680.SetGasHeatTemperature(0, Tamb, T0); // 
   bme680.RunGas();
   bme680.HeaterOn();
   bme680.SetHeaterProfile( 0 );
@@ -157,20 +160,15 @@ int main()
 
     bme680_x77_db->Insert("TpHG1", 4, dbl_array, 2, int_array, sqlite_err);
 
-//    cout << bme680.GetName();
-//    cout << " = ";
-//    cout << std::setw( 5 ) << std::setprecision( 2 ) << T;
-//    cout << " C, RH = ";
-//    cout << std::setw( 5 ) << std::setprecision( 1 ) << RH;
-//    cout << std::setprecision( 0 );
-//    cout << " %, p = " << p;
-//    cout << " Pa, R = " << R;
-//    cout << " ohm";
+    Tamb = (int8_t)T;
+
     if( bme680.GasValid() ) Valid = 'Y'; else Valid = 'N';
     if( bme680.HeaterStable() ) Stable = 'Y'; else Stable = 'N';
-//    cout << "\n";
 
     fprintf(stderr, SD_INFO "%s = %f C, %f %%, %f Pa, %f Ohm, %c, %c\n", bme680.GetName().c_str(), T, RH, p, R, Valid, Stable);
+
+    fprintf(stderr, SD_INFO "profile 0: 100 ms pulse, ambient %d C, target %d C\n", Tamb, T0);
+    bme680.SetGasHeatTemperature(0, Tamb, T0); // adjust ambient temperature 
 
     sleep( readinterval );
   }
