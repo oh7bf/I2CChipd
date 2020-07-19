@@ -1,0 +1,75 @@
+#!/usr/bin/perl -w
+#
+# Monitor files and publish any new value with paho_cs_pub or mosquitto_pub.
+#
+
+use strict;
+#use lib "path-to-local-if-needed/perl5/lib/perl5";
+use Linux::Systemd::Daemon 'sd_ready';
+use Linux::Inotify2;
+
+# these are copied from systemd/sd-daemon.h
+use constant SD_ERR  =>    "<3>"; 
+use constant SD_WARNING => "<4>"; 
+use constant SD_NOTICE =>  "<5>"; 
+use constant SD_INFO =>    "<6>"; 
+use constant SD_DEBUG =>   "<7>"; 
+
+# general MQTT topic published
+my $topic = "computer/sensors/";
+
+# hash to map monitored files to topic name in MQTT
+my %files = (
+  "/var/lib/i2chipd/tmp102_x48" => "T1",
+  "/var/lib/i2chipd/bme680_x77_p" => "p",
+  "/var/lib/i2chipd/bme680_x77_R" => "R", 
+  "/var/lib/i2chipd/bme680_x77_RH" => "RH",
+  "/var/lib/i2chipd/bme680_x77_T" => "T2"
+);
+
+my $inotify = new Linux::Inotify2
+   or die "Unable to create new inotify object: $!";
+
+# start watching files for new writes
+foreach my $file ( keys %files )
+{
+  print STDERR SD_INFO, "$file\n";
+  $inotify->watch($file, IN_CLOSE_WRITE);
+}
+
+# command line for publishing data, e.g. $cmd1 . "T" . $cmd2 . "22" 
+my $cmd1 = "paho_cs_pub -c tcp://mqtt-service.com:1883 -t " . $topic; 
+my $cmd2 = " -q 0 -u username -P passwd -m ";
+my $cmd = "";
+
+# initialization
+sd_ready;
+
+my $value = "";
+my @events;
+my $fh;
+while ()
+{
+  @events = $inotify->read;
+  unless ( scalar( @events ) > 0 )
+  {
+    print STDERR SD_ERR, "read error: $!\n";
+    last;
+  }
+
+  foreach my $event ( @events )
+  {
+    if ( $event->IN_CLOSE_WRITE )
+    {
+      open $fh, '<', $event->fullname or die "Can not open file $!";
+      $value = do { local $/; <$fh> };
+      print STDERR SD_INFO, $files{ $event->fullname }, " = $value";
+      close $fh;
+      $cmd = $cmd1 . $files{ $event->fullname } . $cmd2 . $value;
+      `$cmd`;
+    }
+  }
+}
+
+sd_notify(stopping => 1, status => 'Shutting down...');
+

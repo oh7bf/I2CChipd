@@ -1,0 +1,14 @@
+[Unit]
+Description=Publish data with MQTT from local files.
+
+[Service]
+ExecStart=/usr/sbin/mqttpublish
+Type=simple
+Restart=no
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+
+[Install]
+WantedBy=multi-user.target
