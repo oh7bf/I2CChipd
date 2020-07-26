@@ -21,6 +21,8 @@ my $topic = "computer/sensors/";
 # hash to map monitored files to topic name in MQTT
 my %files = (
   "/var/lib/i2chipd/tmp102_x48" => "T1",
+  "/var/lib/i2chipd/htu21d_T" => "T3",
+  "/var/lib/i2chipd/htu21d_RH" => "RH2",
   "/var/lib/i2chipd/bme680_x77_p" => "p",
   "/var/lib/i2chipd/bme680_x77_R" => "R", 
   "/var/lib/i2chipd/bme680_x77_RH" => "RH",

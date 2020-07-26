@@ -29,6 +29,7 @@
 #ifndef _I2CHIPD_HPP
 #define _I2CHIPD_HPP
 
+#include "Htu21d.hpp"
 #include "Tmp102.hpp"
 #include "Bmp280.hpp"
 #include "Bme680.hpp"
