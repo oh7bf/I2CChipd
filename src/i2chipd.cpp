@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Fri Jul 31 14:46:58 CDT 2020
+ * Edit: Fri 31 Jul 2020 03:44:55 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -346,6 +346,9 @@ int main()
 
         bmp280_db->Insert(bmp280[ i ]->GetName(), 2, dbl_array, sqlite_err);
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+
+        fprintf(stderr, SD_INFO "%s = %f C, %f Pa\n", bmp280[ i ]->GetName().c_str(), T, p);
+
       }
     }
 
