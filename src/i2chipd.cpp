@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Mon Jul 27 18:41:35 CDT 2020
+ * Edit: Thu Jul 30 19:37:49 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <iomanip>
+#include <string>
 
 using namespace std;
 
@@ -55,7 +56,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20200727; // program version
+  const int version = 20200730; // program version
   
   string i2cdev = "/dev/i2c-1";
   string datadir = "/var/lib/i2chipd/";
@@ -82,23 +83,68 @@ int main()
   int8_t Tamb = 25; // ambient temperature for BME680 [C]
   const uint8_t bme680_GasWaitTime[ 2 ] = {0x59, 0x59}; // 0x59 = 100 ms
 
-  // chip objects to read, use nullptr if not wired
+  bool tmp102x48 = false, tmp102x49 = false, tmp102x4A = false, tmp102x4B = false;
+  bool htu21dx = false;
+  bool bmp280x76 = false, bmp280x77 = false;
+  bool bme680x76 = false, bme680x77 = false;
+
+  std::size_t pos;
+  std::string line ("");
+  ifstream confile;
+  confile.open("/etc/i2chipd_conf");
+  if( !confile.is_open() )
+  {
+    fprintf(stderr, SD_ERR "failed to open /etc/i2chipd_conf, quit now\n");
+    return -1;
+  }
+  else
+  {
+    while( getline( confile, line) )
+    {
+      if( !line.empty() )
+      {
+        if( line.at( 0 ) != '#' )
+        {
+          if( line.find("TMP102_x48") != std::string::npos ) tmp102x48 = true;
+          if( line.find("TMP102_x49") != std::string::npos ) tmp102x49 = true;
+          if( line.find("TMP102_x4A") != std::string::npos ) tmp102x4A = true;
+          if( line.find("TMP102_x4B") != std::string::npos ) tmp102x4B = true;
+          if( line.find("HTU21D") != std::string::npos ) htu21dx = true;
+          if( line.find("BMP280_x76") != std::string::npos ) bmp280x76 = true;
+          if( line.find("BMP280_x77") != std::string::npos ) bmp280x77 = true;
+          if( line.find("BME680_x76") != std::string::npos ) bme680x76 = true;
+          if( line.find("BME680_x77") != std::string::npos ) bme680x77 = true;
+
+          pos = line.find("READINT");
+          if( pos != std::string::npos ) 
+          {
+            readinterval = atoi( line.substr(pos+7, line.length() - pos - 7 ).c_str() );
+            fprintf(stderr, SD_INFO "read interval %d s\n", readinterval );
+          }
+        }
+      }
+    } 
+    confile.close();
+  }
+
+    // chip objects to read, use nullptr if not wired
   Tmp102 *tmp102[ 4 ];
-  if( true  ) tmp102[ 0 ] = new Tmp102("T1", i2cdev); else tmp102[ 0 ] = nullptr;
-  if( false ) tmp102[ 1 ] = new Tmp102("T2", i2cdev); else tmp102[ 1 ] = nullptr;
-  if( false ) tmp102[ 2 ] = new Tmp102("T3", i2cdev); else tmp102[ 2 ] = nullptr;
-  if( false ) tmp102[ 3 ] = new Tmp102("T4", i2cdev); else tmp102[ 3 ] = nullptr;
+
+  if( tmp102x48 ) tmp102[ 0 ] = new Tmp102("T1", i2cdev); else tmp102[ 0 ] = nullptr;
+  if( tmp102x49 ) tmp102[ 1 ] = new Tmp102("T2", i2cdev); else tmp102[ 1 ] = nullptr;
+  if( tmp102x4A ) tmp102[ 2 ] = new Tmp102("T3", i2cdev); else tmp102[ 2 ] = nullptr;
+  if( tmp102x4B ) tmp102[ 3 ] = new Tmp102("T4", i2cdev); else tmp102[ 3 ] = nullptr;
 
   Htu21d *htu21d;
-  if( true ) htu21d = new Htu21d("TH1", i2cdev); else htu21d = nullptr;
+  if( htu21dx ) htu21d = new Htu21d("TH1", i2cdev); else htu21d = nullptr;
 
   Bmp280 *bmp280[ 2 ];
-  if( false ) bmp280[ 0 ] = new Bmp280("Tp1", i2cdev); else bmp280[ 0 ] = nullptr;
-  if( false ) bmp280[ 1 ] = new Bmp280("Tp2", i2cdev); else bmp280[ 1 ] = nullptr;
+  if( bmp280x76 ) bmp280[ 0 ] = new Bmp280("Tp1", i2cdev); else bmp280[ 0 ] = nullptr;
+  if( bmp280x77 ) bmp280[ 1 ] = new Bmp280("Tp2", i2cdev); else bmp280[ 1 ] = nullptr;
 
   Bme680 *bme680[ 2 ];
-  if( false ) bme680[ 0 ] = new Bme680("TpHG1", i2cdev); else bme680[ 0 ] = nullptr;
-  if( true  ) bme680[ 1 ] = new Bme680("TpHG2", i2cdev); else bme680[ 1 ] = nullptr;
+  if( bme680x76 ) bme680[ 0 ] = new Bme680("TpHG1", i2cdev); else bme680[ 0 ] = nullptr;
+  if( bme680x77 ) bme680[ 1 ] = new Bme680("TpHG2", i2cdev); else bme680[ 1 ] = nullptr;
 
   // data files to write most recent value
   File *tmp102_file[ 4 ];

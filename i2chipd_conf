@@ -1,0 +1,20 @@
+#
+# Configuration file for i2chipd.
+#
+
+# reading interval
+READINT 120
+
+# TMP102_x48
+# TMP102_x49
+# TMP102_x4A
+# TMP102_x4B
+
+# HTU21D
+
+# BMP280_x76
+# BMP280_x77
+
+# BME680_x76
+# BME680_x77
+
