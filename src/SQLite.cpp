@@ -82,6 +82,8 @@ std::string SQLite::GetDateTime(int & error)
         sprintf(message, "Statement failed: %s\n", sqlite3_errmsg( db ) );
         fprintf(stderr, SD_ERR "%s", message);
         error = rc;
+
+        rc = sqlite3_finalize( stmt );
         sqlite3_close( db );
 
 	return "";
@@ -94,6 +96,9 @@ std::string SQLite::GetDateTime(int & error)
       }
     }
   }
+
+  rc = sqlite3_finalize( stmt );
+  sqlite3_close( db );
 
   return dtime;
 }
@@ -118,7 +123,7 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
     return false;
   }
 
-  int i;
+  int i, j;
 
   rc = sqlite3_prepare_v2(db, insert_stmt.c_str(), 200, &stmt, 0);
 
@@ -140,6 +145,8 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
       sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
       fprintf(stderr, SD_ERR "%s", message);
       error = rc;
+
+      rc = sqlite3_finalize( stmt );
       sqlite3_close( db );
       
       return false;
@@ -155,6 +162,8 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
           sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
           fprintf(stderr, SD_ERR "%s", message);
           error = rc;
+
+          rc = sqlite3_finalize( stmt );
           sqlite3_close( db );
         } 
       }
@@ -163,11 +172,24 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
 
   rc = sqlite3_step( stmt );
 
+  if( rc == SQLITE_BUSY )
+  {
+    j = 0;
+    while( rc == SQLITE_BUSY && j < 10 )
+    {
+      fprintf(stderr, SD_WARNING "SQLite database busy, wait 1 s.\n");
+      sleep( 1 ); // sleep 1 s
+      rc = sqlite3_step( stmt );
+    }
+  }
+
   if( rc != SQLITE_DONE )
   {
     sprintf(message, "Statement failed: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
+
+    rc = sqlite3_finalize( stmt );
     sqlite3_close( db );
 
     return false;
@@ -199,7 +221,7 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
     return false;
   }
 
-  int i;
+  int i, j;
 
   rc = sqlite3_prepare_v2(db, insert_stmt.c_str(), 200, &stmt, 0);
 
@@ -221,6 +243,8 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
       sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
       fprintf(stderr, SD_ERR "%s", message);
       error = rc;
+
+      rc = sqlite3_finalize( stmt );
       sqlite3_close( db );
       
       return false;
@@ -236,7 +260,9 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
           sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
           fprintf(stderr, SD_ERR "%s", message);
           error = rc;
-          sqlite3_close( db );
+
+          rc = sqlite3_finalize( stmt );
+	  sqlite3_close( db );
         } 
       }
 
@@ -249,7 +275,9 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
           sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
           fprintf(stderr, SD_ERR "%s", message);
           error = rc;
-          sqlite3_close( db );
+
+          rc = sqlite3_finalize( stmt );
+	  sqlite3_close( db );
         } 
       }
     }
@@ -257,11 +285,24 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
   
   rc = sqlite3_step( stmt );
 
+  if( rc == SQLITE_BUSY )
+  {
+    j = 0;
+    while( rc == SQLITE_BUSY && j < 10 )
+    {
+      fprintf(stderr, SD_WARNING "SQLite database busy, wait 1 s.\n");
+      sleep( 1 ); // sleep 1 s
+      rc = sqlite3_step( stmt );
+    }
+  }
+
   if( rc != SQLITE_DONE )
   {
     sprintf(message, "Statement failed: %s\n", sqlite3_errmsg( db ) );
     fprintf(stderr, SD_ERR "%s", message);
     error = rc;
+
+    rc = sqlite3_finalize( stmt );
     sqlite3_close( db );
 
     return false;

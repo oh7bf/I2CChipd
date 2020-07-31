@@ -31,6 +31,7 @@
 #include <systemd/sd-daemon.h>
 #include <string>
 #include <sqlite3.h>
+#include <unistd.h>
 
 /// Class for SQLite database functions. 
 
