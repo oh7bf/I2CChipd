@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Thu Jul 30 19:37:49 CDT 2020
+ * Edit: Fri Jul 31 14:46:58 CDT 2020
  *
  * Jaakko Koivuniemi
  **/
@@ -56,7 +56,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20200730; // program version
+  const int version = 20200731; // program version
   
   string i2cdev = "/dev/i2c-1";
   string datadir = "/var/lib/i2chipd/";
@@ -321,6 +321,8 @@ int main()
 
           htu21d_db->Insert(htu21d->GetName(), 2, dbl_array, sqlite_err );
           if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+
+          fprintf(stderr, SD_INFO "%s = %f C, %f %%\n", htu21d->GetName().c_str(), T, RH);
         }
       }
     }
