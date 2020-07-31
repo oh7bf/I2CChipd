@@ -35,6 +35,9 @@ SOURCEBIN=${SOURCEDIR}/src
 # binary executables 
 BINDIR=/usr/sbin
 
+# systemd unit configuration file
+UNITCONF=/lib/systemd/system
+
 # for configuration file
 CONFDIR=/etc
 
@@ -55,6 +58,13 @@ if [ -d $SOURCEBIN ]; then
   done
 else
   echo "Source directory ${SOURCEBIN} does not exist"
+fi
+
+if [ ! -r ${UNITCONF}/i2chipd.service ]; then
+  echo "Write systemd unit configuration file ${UNITCONF}/i2chipd.service"
+  /usr/bin/install -C -m 664 ${SOURCEDIR}/i2chipd.service ${UNITCONF} 
+else
+  echo "Configuration file ${UNITCONF}/i2chipd.service already exists" 
 fi
 
 if [ ! -r ${CONFDIR}/i2chipd_conf ]; then
