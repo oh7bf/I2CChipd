@@ -59,7 +59,7 @@ fi
 
 if [ ! -r ${CONFDIR}/i2chipd_conf ]; then
   echo "Write default configuration file ${CONFDIR}/i2chipd_conf"
-  /usr/bin/install -C -m 664 ${SOURCEDIR}/i2chipd_config ${CONFDIR} 
+  /usr/bin/install -C -m 664 ${SOURCEDIR}/i2chipd_conf ${CONFDIR} 
 else
   echo "Configuration file ${CONFDIR}/i2chipd_conf already exists" 
 fi
