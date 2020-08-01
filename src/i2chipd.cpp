@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Fri 31 Jul 2020 03:44:55 PM CDT
+ * Edit: Fri 31 Jul 2020 06:58:43 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -59,7 +59,9 @@ int main()
   const int version = 20200731; // program version
   
   string i2cdev = "/dev/i2c-1";
-  string datadir = "/var/lib/i2chipd/";
+  string spidev00 = "/dev/spidev0.0";
+  string spidev01 = "/dev/spidev0.1";
+  string datadir = "/tmp/";
   string sqlitedb = "/var/lib/i2chipd/i2chipd.db";
 
   int readinterval = 120;
@@ -87,6 +89,7 @@ int main()
   bool htu21dx = false;
   bool bmp280x76 = false, bmp280x77 = false;
   bool bme680x76 = false, bme680x77 = false;
+  bool max31865_00 = false, max31865_01 = false;
 
   std::size_t pos;
   std::string line ("");
@@ -114,6 +117,8 @@ int main()
           if( line.find("BMP280_x77") != std::string::npos ) bmp280x77 = true;
           if( line.find("BME680_x76") != std::string::npos ) bme680x76 = true;
           if( line.find("BME680_x77") != std::string::npos ) bme680x77 = true;
+          if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
+          if( line.find("MAX31865_01") != std::string::npos ) max31865_01 = true;
 
           pos = line.find("READINT");
           if( pos != std::string::npos ) 
@@ -146,6 +151,12 @@ int main()
   if( bme680x76 ) bme680[ 0 ] = new Bme680("TpHG1", i2cdev); else bme680[ 0 ] = nullptr;
   if( bme680x77 ) bme680[ 1 ] = new Bme680("TpHG2", i2cdev); else bme680[ 1 ] = nullptr;
 
+  Max31865 *max31865[ 2 ];
+  if( max31865_00 ) max31865[ 0 ] = new Max31865("TDR1", spidev00, 500000, 430);
+  else max31865[ 0 ] = nullptr;
+  if( max31865_01 ) max31865[ 1 ] = new Max31865("TDR2", spidev01, 500000, 430);
+  else max31865[ 1 ] = nullptr;
+
   // data files to write most recent value
   File *tmp102_file[ 4 ];
   tmp102_file[ 0 ] = new File(datadir, "tmp102_x48");
@@ -173,11 +184,20 @@ int main()
   bme680_R_file[ 0 ]  = new File(datadir, "bme680_x76_R");
   bme680_R_file[ 1 ]  = new File(datadir, "bme680_x77_R");
 
+  File *max31865_T_file[ 2 ], *max31865_R_file[ 2 ], *max31865_F_file[ 2 ];
+  max31865_T_file[ 0 ] = new File(datadir, "max31865_00_T");
+  max31865_T_file[ 1 ] = new File(datadir, "max31865_01_T");
+  max31865_R_file[ 0 ] = new File(datadir, "max31865_00_R");
+  max31865_R_file[ 1 ] = new File(datadir, "max31865_01_R");
+  max31865_F_file[ 0 ] = new File(datadir, "max31865_00_F");
+  max31865_F_file[ 1 ] = new File(datadir, "max31865_01_F");
+
   // SQLite objects to store values in database table
   SQLite *tmp102_db  = new SQLite(sqlitedb, "tmp102", "insert into tmp102 (name,temperature) values (?,?)");
   SQLite *htu21d_db = new SQLite(sqlitedb, "htu21d", "insert into htu21d (name,temperature,humidity) values (?,?,?)");
   SQLite *bmp280_db  = new SQLite(sqlitedb, "bmp280", "insert into bmp280 (name,temperature,pressure) values (?,?,?)");
   SQLite *bme680_db  = new SQLite(sqlitedb, "bme680", "insert into bme680 (name,temperature,humidity,pressure,resistance,gasvalid,stable) values (?,?,?,?,?,?,?)");
+  SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
 
   for( int i = 0; i < 4; i++)
   {
@@ -278,8 +298,23 @@ int main()
     }
   }
 
+  for( int i = 0; i < 2; i++)
+  {
+    if( max31865[ i ] )
+    {
+      max31865[ i ]->SetLowFault( 400 );
+      max31865[ i ]->SetHighFault( 40000 );
+      max31865[ i ]->BiasOn();
+
+      fprintf(stderr, SD_INFO "%s %s\n", max31865[ i ]->GetName().c_str(), max31865[ i ]->GetDevice().c_str() );
+      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", max31865_db->GetTable().c_str() );
+      fprintf(stderr, SD_INFO "low fault %d high fault %d\n", max31865[ i ]->GetLowFault(), max31865[ i ]->GetHighFault() );
+    }
+  }
+
   double T = 0, RH = 0, p = 0, R = 0;
   char Valid = 'N', Stable = 'N';
+  int F = 0;
   double dbl_array[ 10 ];
   int int_array[ 10 ];
   while( cont )
@@ -290,12 +325,12 @@ int main()
       {	      
         tmp102[ i ]->ReadTemperature();
         T = tmp102[ i ]->GetTemperature();
-        tmp102_file[ i ]->Write( T );
+
+        fprintf(stderr, SD_INFO "%s = %f C\n", tmp102[ i ]->GetName().c_str(), T);
+	tmp102_file[ i ]->Write( T );
         dbl_array[ 0 ] = T;
         tmp102_db->Insert(tmp102[ i ]->GetName(), 1, dbl_array, sqlite_err );
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
-
-        fprintf(stderr, SD_INFO "%s = %f C\n", tmp102[ i ]->GetName().c_str(), T);
       }
     }
 
@@ -314,15 +349,15 @@ int main()
         if( htu21d->ReadHumidity() )
         {
           RH = htu21d->GetHumidity();
-          htu21d_RH_file->Write( RH );
+          fprintf(stderr, SD_INFO "%s = %f C, %f %%\n", htu21d->GetName().c_str(), T, RH);
+
+	  htu21d_RH_file->Write( RH );
 
           dbl_array[ 0 ] = T;
           dbl_array[ 1 ] = RH;
 
           htu21d_db->Insert(htu21d->GetName(), 2, dbl_array, sqlite_err );
           if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
-
-          fprintf(stderr, SD_INFO "%s = %f C, %f %%\n", htu21d->GetName().c_str(), T, RH);
         }
       }
     }
@@ -338,6 +373,8 @@ int main()
 	T = bmp280[ i ]->GetTemperature();
 	p = bmp280[ i ]->GetPressure();
 
+        fprintf(stderr, SD_INFO "%s = %f C, %f Pa\n", bmp280[ i ]->GetName().c_str(), T, p);
+
         bmp280_T_file[ i ]->Write( T );
         bmp280_p_file[ i ]->Write( p );
 
@@ -346,8 +383,6 @@ int main()
 
         bmp280_db->Insert(bmp280[ i ]->GetName(), 2, dbl_array, sqlite_err);
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
-
-        fprintf(stderr, SD_INFO "%s = %f C, %f Pa\n", bmp280[ i ]->GetName().c_str(), T, p);
 
       }
     }
@@ -364,6 +399,11 @@ int main()
         RH = bme680[ i ]->GetHumidity();
         p = bme680[ i ]->GetPressure();
         R = bme680[ i ]->GetResistance();
+
+        if( bme680[ i ]->GasValid() ) Valid = 'Y'; else Valid = 'N';
+        if( bme680[ i ]->HeaterStable() ) Stable = 'Y'; else Stable = 'N';
+
+        fprintf(stderr, SD_INFO "%s = %f C, %f %%, %f Pa, %f ohm, %c, %c\n", bme680[ 1 ]->GetName().c_str(), T, RH, p, R, Valid, Stable);
 
         bme680_T_file[ i ]->Write( T );
         bme680_RH_file[ i ]->Write( RH );
@@ -382,18 +422,49 @@ int main()
 
         Tamb = (int8_t)T;
 
-        if( bme680[ i ]->GasValid() ) Valid = 'Y'; else Valid = 'N';
-        if( bme680[ i ]->HeaterStable() ) Stable = 'Y'; else Stable = 'N';
-
-        fprintf(stderr, SD_INFO "%s = %f C, %f %%, %f Pa, %f Ohm, %c, %c\n", bme680[ 1 ]->GetName().c_str(), T, RH, p, R, Valid, Stable);
-
         fprintf(stderr, SD_INFO "profile 0: 0x%02x pulse, ambient %d C, target %d C\n", bme680_GasWaitTime[ i ], Tamb, bme680_T0[ i ]);
         bme680[ i ]->SetGasHeatTemperature(0, Tamb, bme680_T0[ i ]); // adjust ambient temperature 
       }
     }
 
+    for(int i = 0; i < 2; i++)
+    {
+      if( max31865[ i ] )
+      {
+        max31865[ i ]->OneShot();
+        usleep( 100000 ); // 100 ms
+
+	max31865[ i ]->FaultDetection();
+        usleep( 1000 ); // 1 ms
+
+	max31865[ i ]->ReadResistance();
+	max31865[ i ]->CalcTemperature();
+
+        T = max31865[ i ]->GetTemperature();
+        R = max31865[ i ]->GetResistance();
+        F = 0;
+        if( max31865[ i ]->IsFault() ) F = (int)max31865[ i ]->GetFaultStatusByte();
+
+	fprintf(stderr, SD_INFO "%s = %f C, %f ohm", max31865[ i ]->GetName().c_str(), T, R);
+        if( F != 0 ) fprintf(stderr, ", fault = %d", F);
+        fprintf(stderr, "\n");
+
+	max31865_T_file[ i ]->Write( T );
+	max31865_R_file[ i ]->Write( R );
+	max31865_F_file[ i ]->Write( F );
+
+        dbl_array[ 0 ] = T;
+        dbl_array[ 1 ] = R;
+        int_array[ 0 ] = F;
+
+        max31865_db->Insert(max31865[ i ]->GetName(), 2, dbl_array, 1, int_array, sqlite_err);
+        if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+      }
+    }
+
     sleep( readinterval );
   }
+
 
   for(int i = 0; i < 4; i++) if( tmp102[ i ] ) delete tmp102[ i ];
   for(int i = 0; i < 4; i++) delete tmp102_file[ i ];
@@ -421,6 +492,15 @@ int main()
     delete bme680_R_file[ i ];
   }
   delete bme680_db;
+
+  for(int i = 0; i < 2; i++) if( max31865[ i ] ) delete max31865[ i ];
+  for(int i = 0; i < 2; i++)
+  {
+    delete max31865_T_file[ i ];
+    delete max31865_R_file[ i ];
+    delete max31865_F_file[ i ];
+  }
+  delete max31865_db;
 
   return 0;
 };

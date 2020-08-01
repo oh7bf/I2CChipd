@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:18:46 CDT 2020
- * Edit: 
+ * Edit: Fri 31 Jul 2020 06:57:31 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -35,5 +35,6 @@
 #include "Bme680.hpp"
 #include "File.hpp"
 #include "SQLite.hpp"
+#include "Max31865.hpp"
 
 #endif

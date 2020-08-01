@@ -25,7 +25,7 @@ MODULES      += i2chipd.o
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-all: i2chipd test_bmp280 test_bme680 test_tmp102 test_htu21d 
+all: i2chipd test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 
 
 i2chipd: $(MODULES) 
 	$(LD) $(LDFLAGS) -lsqlite3 $^ -o $@
@@ -40,6 +40,9 @@ test_tmp102: I2Chip.o Tmp102.o test_tmp102.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 test_htu21d: I2Chip.o Htu21d.o test_htu21d.o
+	$(LD) $(LDFLAGS) $^ -o $@
+
+test_max31865: SPIChip.o Max31865.o test_max31865.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:

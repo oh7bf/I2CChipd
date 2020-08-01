@@ -8,12 +8,12 @@
 # 
 # c) sudo ./install (this script)
 #
-# d) sudo raspi-config (to enable I2C) 
+# d) sudo raspi-config (to enable I2C and SPI) 
 #
-# e) sudo systemctl start i2chipd.service 
+# e) journalctl -u i2chipd.service --follow -p info
+#
+# f) sudo systemctl start i2chipd.service 
 # 
-# f) journalctl -u i2chipd.service --follow -p info
-#
 #
 # The directories used and files created by this script:
 #

@@ -36,6 +36,15 @@ Bz real,
 temperature real
 );
 
+create table max31865(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+temperature real,
+resistance real,
+fault integer
+);
+
 create table mpl3115a2(
 no integer primary key,
 ts timestamp default current_timestamp,
