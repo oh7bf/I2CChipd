@@ -237,18 +237,14 @@ uint8_t Max31865::GetFaultStatusByte()
 }
 
 /// Read RTD resistance value scaled from reference resistor Rref.
-double Max31865::GetResistance()
+void Max31865::ReadResistance()
 {
    uint8_t readbuffer[ 3 ];
-   uint16_t RTD = 0x0000;
-   double resistance;
 
    SPIChip::SPIWriteByteRead(MAX31865_RTD_READ, 0x00, 3, readbuffer);
    RTD = ( (uint16_t)readbuffer[ 1 ] ) << 8;
    RTD |= (uint16_t)readbuffer[ 2 ]; 
-   resistance = RTD * Rref / 65536.0;
-
-   return resistance;
+   Resistance = RTD * Rref / 65536.0;
 }
 
 // Callendar-Van Dusen equation:
@@ -280,21 +276,14 @@ double DR( double T)
 }
 
 /// Read RTD value and estimate temperature from Callendar-Van Dusen equation.
-double Max31865::GetTemperature()
+void Max31865::CalcTemperature()
 {
    const double tolerance = 1e-7;
    const double epsilon = 1e-14;
    const int maxiterations = 20;
 
-   uint8_t readbuffer[ 3 ];
-   uint16_t RTD = 0x0000;
-   double resistance, T = -9999, T0 = 0, T1 = 0;
+   double T = -9999, T0 = 0, T1 = 0;
    double y, yprime;
- 
-   SPIChip::SPIWriteByteRead(MAX31865_RTD_READ, 0x00, 3, readbuffer);
-   RTD = ( (uint16_t)readbuffer[ 1 ] ) << 8;
-   RTD |= (uint16_t)readbuffer[ 2 ]; 
-   resistance = RTD * Rref / 65536.0;
 
 // approximate temperature [C]
    T0 = (double)(RTD/64 - 256);
@@ -303,7 +292,7 @@ double Max31865::GetTemperature()
    bool solution = false;
    for( int i = 0; i < maxiterations ; i++ )
    {
-      y = R( T0 ) - resistance;
+      y = R( T0 ) - Resistance;
       yprime = DR( T0 );
 
       fprintf(stderr, SD_DEBUG "%4d %+9.6f %+9.6f %+9.6f %+9.6f\n", i, T0, T1, y, yprime);
@@ -323,6 +312,6 @@ double Max31865::GetTemperature()
 
    if( solution ) T = T1; 
 
-   return T;
+   Temperature = T;
 }
 

@@ -59,6 +59,10 @@ class Max31865 : public SPIChip
     uint32_t clock;         ///< clock rate [Hz]
     double   Rref;          ///< reference resistor for A/D-converter [ohm]
 
+    uint16_t RTD;           ///< last ADC value
+    double Resistance;      ///< last measured resistance value [ohm]
+    double Temperature;     ///< last calculated temperature [C]
+
   public:
     /// Construct Max31865 object with parameters to measure temperature.
     Max31865(std::string name, std::string device, uint32_t clock, double Rref)        : SPIChip(name, device, MAX31865_MODE, MAX31865_BITS, clock, 0) 
@@ -79,6 +83,15 @@ class Max31865 : public SPIChip
 
     /// Get clock frequency used to transfer serial data.
     uint32_t GetClock() { return clock; }
+
+    /// Get RTD from last chip read.
+    uint16_t GetRTD() { return RTD; }
+
+    /// Get resistance from last chip read.
+    double GetResistance() { return Resistance; }
+
+    /// Get temperature from last calculation.
+    double GetTemperature() { return Temperature; }
 
     /// Get high fault value.
     uint16_t GetHighFault();
@@ -146,11 +159,11 @@ class Max31865 : public SPIChip
     /// Use 60 Hz filter by writing zero to bit D0 in configuration register.
     void Filter60Hz(); 
 
-    /// Read A/D-converter value RTD and scale to resistance.
-    double GetResistance();
+    /// Read chip RTD and scale to resistance.
+    void ReadResistance();
 
-    /// Read A/D-converter value RTD and calculate temperature in Celcius. 
-    double GetTemperature();
+    /// Calculate temperature in Celcius from RTD. 
+    void CalcTemperature();
 
 };
 
