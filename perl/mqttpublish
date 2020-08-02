@@ -20,24 +20,26 @@ my $topic = "computer/sensors/";
 
 # hash to map monitored files to topic name in MQTT
 my %files = (
-  "/var/lib/i2chipd/tmp102_x48" => "tmp102_x48",
-  "/var/lib/i2chipd/tmp102_x49" => "tmp102_x49",
-  "/var/lib/i2chipd/tmp102_x4A" => "tmp102_x4A",
-  "/var/lib/i2chipd/tmp102_x4B" => "tmp102_x4B",
-  "/var/lib/i2chipd/htu21d_T" => "htu21d_T",
-  "/var/lib/i2chipd/htu21d_RH" => "htu21d_RH",
-  "/var/lib/i2chipd/bmp280_x76_T" => "bmp280_x76_T",
-  "/var/lib/i2chipd/bmp280_x76_p" => "bmp280_x76_p",
-  "/var/lib/i2chipd/bmp280_x77_T" => "bmp280_x77_T",
-  "/var/lib/i2chipd/bmp280_x77_p" => "bmp280_x77_p",
-  "/var/lib/i2chipd/bme680_x76_p" => "bme680_x76_p",
-  "/var/lib/i2chipd/bme680_x76_R" => "bme680_x76_R",
-  "/var/lib/i2chipd/bme680_x76_RH" => "bme680_x76_RH",
-  "/var/lib/i2chipd/bme680_x76_T" => "bme680_x76_T",
-  "/var/lib/i2chipd/bme680_x77_p" => "bme680_x77_p",
-  "/var/lib/i2chipd/bme680_x77_R" => "bme680_x77_R",
-  "/var/lib/i2chipd/bme680_x77_RH" => "bme680_x77_RH",
-  "/var/lib/i2chipd/bme680_x77_T" => "bme680_x77_T"
+  "/tmp/bme680_x76_p" => "bme680_x76_p",
+  "/tmp/bme680_x76_R" => "bme680_x76_R",
+  "/tmp/bme680_x76_RH" => "bme680_x76_RH",
+  "/tmp/bme680_x76_T" => "bme680_x76_T",
+  "/tmp/bme680_x77_p" => "bme680_x77_p",
+  "/tmp/bme680_x77_R" => "bme680_x77_R",
+  "/tmp/bme680_x77_RH" => "bme680_x77_RH",
+  "/tmp/bme680_x77_T" => "bme680_x77_T",
+  "/tmp/bmp280_x76_T" => "bmp280_x76_T",
+  "/tmp/bmp280_x76_p" => "bmp280_x76_p",
+  "/tmp/bmp280_x77_T" => "bmp280_x77_T",
+  "/tmp/bmp280_x77_p" => "bmp280_x77_p",
+  "/tmp/htu21d_T" => "htu21d_T",
+  "/tmp/htu21d_RH" => "htu21d_RH",
+  "/tmp/max31865_00" => "max31865_00",
+  "/tmp/max31865_01" => "max31865_01",
+  "/tmp/tmp102_x48" => "tmp102_x48",
+  "/tmp/tmp102_x49" => "tmp102_x49",
+  "/tmp/tmp102_x4A" => "tmp102_x4A",
+  "/tmp/tmp102_x4B" => "tmp102_x4B"
 );
 
 my $inotify = new Linux::Inotify2
