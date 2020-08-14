@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sat Aug  8 19:34:10 CDT 2020
- * Edit: 
+ * Edit: Thu 13 Aug 2020 07:44:35 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -90,6 +90,9 @@ class Ads1015 : public I2Chip
     /// Get programmable gain amplifier setting 0 - 7.
     uint16_t GetPGA(); 
 
+    /// Get input multiplexer setting 0 - 7.
+    uint16_t GetMux();
+
     /// Get high threshold register value.
     int16_t GetHighThreshold();
 
@@ -98,6 +101,9 @@ class Ads1015 : public I2Chip
 
     /// Get configuration register value.
     uint16_t GetConfig(); 
+
+    /// Get comparator comparator mode 0 or 1.
+    uint16_t GetCompMode();
 
     /// Get comparator pin polarity to 0 or 1.
     uint16_t GetCompPolarity();
@@ -143,6 +149,9 @@ class Ads1015 : public I2Chip
 
     /// Set programmable gain amplifier 0 - 7.
     void SetPGA(uint16_t PGA);
+
+    /// Set input multiplexer 0 - 7.
+    void SetMux(uint16_t Mux);
 
     /// Set comparator pin polarity to 0 or 1.
     void SetCompPolarity(uint16_t CompPolarity);
