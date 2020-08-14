@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Thu Aug 13 16:51:21 CDT 2020
- * Edit: 
+ * Edit: Thu 13 Aug 2020 07:57:57 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -67,10 +67,6 @@ int main(int argc, char **argv)
 
   cout << "-- read registers\n";
   uint16_t config = chip->GetConfig();
-  uint16_t low_thresh= 0; 
-  uint16_t high_thresh= 0;
-  uint16_t pga = 0;
-  uint16_t config2 = 0;
 
   int error = chip->GetError();
 
@@ -81,25 +77,26 @@ int main(int argc, char **argv)
   }
   else
   {
-    pga = chip->GetPGA();
-    low_thresh = chip->GetLowThreshold();
-    high_thresh = chip->GetHighThreshold();
-    cout << "CONFIG = " << config << " ";
-    cout << "PGA = " << pga << " ";
-    cout << "LOW THRESHOLD = " << low_thresh << " ";
-    cout << "HIGH THRESHOLD = " << high_thresh << "\n";
-
-    chip->Powerdown();
-    chip->SetPointer( ADS1015_CONV_REG );
-    chip->ReadConversion();
-    cout << "-- voltage: " << chip->GetVoltage() << " V, ";
-    cout << "I2C error flag: " << chip->GetError() << "\n";
-
+    cout << "CONFIG = " << config << "\n";
+    cout << "MUX = " << chip->GetMux() << "\n";
+    cout << "PGA = " << chip->GetPGA() << "\n";
+    cout << "DR = " << chip->GetDataRate() << "\n";
+    cout << "LOW THRESHOLD = " << chip->GetLowThreshold() << "\n";
+    cout << "HIGH THRESHOLD = " << chip->GetHighThreshold() << "\n";
 
     cout << "-- read status bits\n";
+    cout << "COMP_MODE = " << chip->GetCompMode() << " ";
     cout << "COMP_POL = " << chip->GetCompPolarity() << " ";
     cout << "COMP_LAT = " << chip->GetCompLatching() << " ";
     cout << "COMP_QUE = " << chip->GetCompQueue() << "\n";
+
+    cout << "-- set COMP_MODE to 0, 1, 0 and read back\n";
+    chip->SetCompMode( 0 );
+    cout << "COMP_MODE = " << chip->GetCompMode();
+    chip->SetCompMode( 1 );
+    cout << ", " << chip->GetCompMode();
+    chip->SetCompMode( 0 );
+    cout << ", " << chip->GetCompMode() << "\n";
 
     cout << "-- set COMP_POL to 0, 1, 0 and read back\n";
     chip->SetCompPolarity( 0 );
@@ -118,20 +115,26 @@ int main(int argc, char **argv)
     cout << ", " << chip->GetCompLatching() << "\n";
 
     cout << "-- set COMP_QUE to 0, 1, 2, 3 and read back\n";
-    chip->SetCompQueue( 0 );
-    cout << "COMP_QUE = " << chip->GetCompQueue();
-    chip->SetCompQueue( 1 );
-    cout << ", " << chip->GetCompQueue();
-    chip->SetCompQueue( 2 );
-    cout << ", " << chip->GetCompQueue(); 
+    for( uint16_t i = 0; i < 3; i++)
+    {
+      chip->SetCompQueue( i );
+      cout << chip->GetCompQueue() << ", ";
+    }
     chip->SetCompQueue( 3 );
-    cout << ", " << chip->GetCompQueue() << "\n";
+    cout << chip->GetCompQueue() << "\n";
 
+    chip->Powerdown();
+    chip->SingleConversion();
+    usleep( 100000 );
+    chip->SetPointer( ADS1015_CONV_REG );
+    chip->ReadConversion();
+    cout << "-- voltage: " << chip->GetVoltage() << " V, ";
+    cout << "I2C error flag: " << chip->GetError() << "\n";
 
-    cout << "-- restore original CONFIG, TLOW and THIGH register values\n";
+    cout << "-- restore original CONFIG register value\n";
     chip->SetConfig( config );
-    chip->SetLowThreshold( low_thresh );
-    chip->SetHighThreshold( high_thresh );
+//    chip->SetLowThreshold( low_thresh );
+//    chip->SetHighThreshold( high_thresh );
     chip->SetPointer( ADS1015_CONV_REG );
   }
 
