@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sat Aug  8 20:19:22 CDT 2020
- * Edit: Thu Aug 13 16:40:15 CDT 2020
+ * Edit: Thu 13 Aug 2020 07:47:45 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -76,6 +76,30 @@ uint16_t Ads1015::GetPGA()
   pga = ( (Config & 0x0E00 ) >> 9);
 
   return pga;
+}
+
+/// The CONFIG register is read to get multiplexer configuration setting.
+uint16_t Ads1015::GetMux()
+{
+  uint16_t mux = 0;
+  uint16_t Config = 0;
+
+  Config = Ads1015::GetConfig();
+  mux = ( (Config & 0x7000 ) >> 12);
+
+  return mux;
+}
+
+/// The CONFIG register is read to get mode bit.
+uint16_t Ads1015::GetCompMode()
+{
+  uint16_t CompMode = 2;
+  uint16_t Config = 0;
+
+  Config = Ads1015::GetConfig();
+  CompMode = ( Config & 0x0010 ) >> 4;
+
+  return CompMode;
 }
 
 /// The CONFIG register is read to get polarity bit.
@@ -161,6 +185,21 @@ void Ads1015::SetPGA(uint16_t PGA)
   Config = Ads1015::GetConfig();
   Config &= 0xF1FF;
   Config |= PGA; 
+  
+  Ads1015::SetConfig( Config );
+
+}
+
+/// Set three MUX bits in CONFIG register.
+void Ads1015::SetMux(uint16_t Mux)
+{
+  uint16_t Config = 0;
+
+  Mux &= 0x0007;
+  Mux = Mux << 12;
+  Config = Ads1015::GetConfig();
+  Config &= 0x8FFF;
+  Config |= Mux; 
   
   Ads1015::SetConfig( Config );
 
