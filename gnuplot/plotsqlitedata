@@ -1,0 +1,26 @@
+#!/usr/bin/gnuplot
+# Example Gnuplot script to plot local SQLite data. 
+# Get the data for example with 
+#
+# sqlite3 /var/lib/i2chipd/i2chipd.db 
+# .mode column
+# .output tmp102.txt
+# select ts, temperature from tmp102 where name='T1' and ts>='2020-08-22 00:00:00';
+#  
+
+set title "Temperature at home"
+set xlabel "Time"
+set ylabel "T1[C]"
+
+set xdata time
+set timefmt "%Y-%m-%d %H:%M:%S"
+
+set key left top
+
+plot "tmp102.txt" using 1:3 
+
+set term png
+set output "tmp102.png"
+
+plot "tmp102.txt" using 1:3 
+
