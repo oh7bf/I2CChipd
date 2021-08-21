@@ -14,6 +14,7 @@
 #
 # f) sudo systemctl start i2chipd.service 
 # 
+# g) sudo systemctl enable i2chipd.service (optional)
 #
 # The directories used and files created by this script:
 #

@@ -1,3 +1,10 @@
+create table bh1750fvi(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+illuminance real
+);
+
 create table bme680(
 no integer primary key,
 ts timestamp default current_timestamp,
