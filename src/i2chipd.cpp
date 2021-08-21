@@ -2,7 +2,7 @@
  * 
  * Read chips with I2C interface. 
  *       
- * Copyright (C) 2020 Jaakko Koivuniemi.
+ * Copyright (C) 2020 - 2021 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Fri 31 Jul 2020 06:58:43 PM CDT
+ * Edit: Sat Aug 21 13:55:54 CDT 2021
  *
  * Jaakko Koivuniemi
  **/
@@ -56,7 +56,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20200731; // program version
+  const int version = 20210821; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -89,6 +89,7 @@ int main()
   bool htu21dx = false;
   bool bmp280x76 = false, bmp280x77 = false;
   bool bme680x76 = false, bme680x77 = false;
+  bool bh1750fvix23 = false, bh1750fvix5C = false;
   bool max31865_00 = false, max31865_01 = false;
 
   std::size_t pos;
@@ -117,7 +118,9 @@ int main()
           if( line.find("BMP280_x77") != std::string::npos ) bmp280x77 = true;
           if( line.find("BME680_x76") != std::string::npos ) bme680x76 = true;
           if( line.find("BME680_x77") != std::string::npos ) bme680x77 = true;
-          if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
+          if( line.find("BH1750FVI_x23") != std::string::npos ) bh1750fvix23 = true;
+          if( line.find("BH1750FVI_x5C") != std::string::npos ) bh1750fvix5C = true;
+	  if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
           if( line.find("MAX31865_01") != std::string::npos ) max31865_01 = true;
 
           pos = line.find("READINT");
@@ -151,6 +154,10 @@ int main()
   if( bme680x76 ) bme680[ 0 ] = new Bme680("TpHG1", i2cdev); else bme680[ 0 ] = nullptr;
   if( bme680x77 ) bme680[ 1 ] = new Bme680("TpHG2", i2cdev); else bme680[ 1 ] = nullptr;
 
+  Bh1750fvi *bh1750fvi[ 2 ];
+  if( bh1750fvix23 ) bh1750fvi[ 0 ] = new Bh1750fvi("Ev1", i2cdev); else bh1750fvi[ 0 ] = nullptr;
+  if( bh1750fvix5C ) bh1750fvi[ 1 ] = new Bh1750fvi("Ev2", i2cdev); else bh1750fvi[ 1 ] = nullptr;
+
   Max31865 *max31865[ 2 ];
   if( max31865_00 ) max31865[ 0 ] = new Max31865("TDR1", spidev00, 500000, 430);
   else max31865[ 0 ] = nullptr;
@@ -174,7 +181,6 @@ int main()
   bmp280_p_file[ 1 ] = new File(datadir, "bmp280_x77_p");
 
   File *bme680_T_file[ 2 ], *bme680_p_file[ 2 ], *bme680_RH_file[ 2 ], *bme680_R_file[ 2 ];
-
   bme680_T_file[ 0 ]  = new File(datadir, "bme680_x76_T");
   bme680_T_file[ 1 ]  = new File(datadir, "bme680_x77_T");
   bme680_p_file[ 0 ]  = new File(datadir, "bme680_x76_p");
@@ -183,6 +189,10 @@ int main()
   bme680_RH_file[ 1 ] = new File(datadir, "bme680_x77_RH");
   bme680_R_file[ 0 ]  = new File(datadir, "bme680_x76_R");
   bme680_R_file[ 1 ]  = new File(datadir, "bme680_x77_R");
+
+  File *bh1750fvi_Ev_file[ 2 ];
+  bh1750fvi_Ev_file[ 0 ] = new File(datadir, "bh1750fvi_x23_Ev");
+  bh1750fvi_Ev_file[ 1 ] = new File(datadir, "bh1750fvi_x5C_Ev");
 
   File *max31865_T_file[ 2 ], *max31865_R_file[ 2 ], *max31865_F_file[ 2 ];
   max31865_T_file[ 0 ] = new File(datadir, "max31865_00_T");
@@ -197,6 +207,7 @@ int main()
   SQLite *htu21d_db = new SQLite(sqlitedb, "htu21d", "insert into htu21d (name,temperature,humidity) values (?,?,?)");
   SQLite *bmp280_db  = new SQLite(sqlitedb, "bmp280", "insert into bmp280 (name,temperature,pressure) values (?,?,?)");
   SQLite *bme680_db  = new SQLite(sqlitedb, "bme680", "insert into bme680 (name,temperature,humidity,pressure,resistance,gasvalid,stable) values (?,?,?,?,?,?,?)");
+  SQLite *bh1750fvi_db  = new SQLite(sqlitedb, "bh1750fvi", "insert into bh1750fvi (name,illuminance) values (?,?)");
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
 
   for( int i = 0; i < 4; i++)
@@ -300,6 +311,19 @@ int main()
 
   for( int i = 0; i < 2; i++)
   {
+    if( bh1750fvi[ i ] )
+    {
+      if( i == 0 ) bh1750fvi[ i ]->SetAddress0x23(); 
+      else bh1750fvi[ i ]->SetAddress0x5C();
+
+      fprintf(stderr, SD_INFO "%s %s %d\n", bh1750fvi[ i ]->GetName().c_str(), bh1750fvi[ i ]->GetDevice().c_str(), bh1750fvi[ i ]->GetAddress() );
+
+      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", bh1750fvi_db->GetTable().c_str() );
+    }
+  }    
+    
+  for( int i = 0; i < 2; i++)
+  {
     if( max31865[ i ] )
     {
       max31865[ i ]->SetLowFault( 400 );
@@ -312,7 +336,7 @@ int main()
     }
   }
 
-  double T = 0, RH = 0, p = 0, R = 0;
+  double T = 0, RH = 0, p = 0, R = 0, Ev = 0;
   char Valid = 'N', Stable = 'N';
   int F = 0;
   double dbl_array[ 10 ];
@@ -429,6 +453,28 @@ int main()
 
     for(int i = 0; i < 2; i++)
     {
+      if( bh1750fvi[ i ] )
+      {
+        bh1750fvi[ i ]->OneTimeHighResMode();
+        usleep( 700000 ); // 700 ms
+
+        if( bh1750fvi[ i ]->ReadIlluminance() )
+        {
+          Ev = bh1750fvi[ i ]->GetIlluminance();
+
+          fprintf(stderr, SD_INFO "%s = %f lx\n", bh1750fvi[ i ]->GetName().c_str(), Ev);
+
+          bh1750fvi_Ev_file[ i ]->Write( Ev );
+
+          dbl_array[ 0 ] = Ev;
+
+        bh1750fvi_db->Insert(bh1750fvi[ i ]->GetName(), 1, dbl_array, sqlite_err);
+        if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+        }
+      }
+    }
+      for(int i = 0; i < 2; i++)
+    {
       if( max31865[ i ] )
       {
         max31865[ i ]->OneShot();
@@ -492,6 +538,10 @@ int main()
     delete bme680_R_file[ i ];
   }
   delete bme680_db;
+
+  for(int i = 0; i < 2; i++) if( bh1750fvi[ i ] ) delete bh1750fvi[ i ];
+  for(int i = 0; i < 2; i++) delete bh1750fvi_Ev_file[ i ];
+  delete bh1750fvi_db;
 
   for(int i = 0; i < 2; i++) if( max31865[ i ] ) delete max31865[ i ];
   for(int i = 0; i < 2; i++)

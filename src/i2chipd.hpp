@@ -2,7 +2,7 @@
  * 
  * Read chips with I2C interface. 
  *       
- * Copyright (C) 2020 Jaakko Koivuniemi.
+ * Copyright (C) 2020 - 2021 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:18:46 CDT 2020
- * Edit: Fri 31 Jul 2020 06:57:31 PM CDT
+ * Edit: Sat Aug 21 13:53:49 CDT 2021
  *
  * Jaakko Koivuniemi
  **/
@@ -36,5 +36,6 @@
 #include "File.hpp"
 #include "SQLite.hpp"
 #include "Max31865.hpp"
+#include "Bh1750fvi.hpp"
 
 #endif
