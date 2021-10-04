@@ -1,6 +1,7 @@
 # I2Chipd 
 Read chips with I2C interface on Raspberry Pi.
-Chips working with some issues: BME680, BMP280 and TMP102.
+Chips working with some issues: BME680, BMP280, HTU21D, LIS3MDL, 
+MAX31865 and TMP102.
 
 Install *libsystemd-dev* and enable I2C with *raspi-config*.
 
