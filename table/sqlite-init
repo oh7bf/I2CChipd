@@ -33,6 +33,16 @@ temperature real,
 humidity real
 );
 
+create table lis3mdl(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+Bx real,
+By real,
+Bz real,
+temperature real
+);
+
 create table mag3110(
 no integer primary key,
 ts timestamp default current_timestamp,

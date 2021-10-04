@@ -3,7 +3,7 @@
 # Makefile for compiling 'i2chipd' on Raspberry Pi. 
 #
 # Fri Jul  3 11:50:56 CDT 2020
-# Edit: Sun Aug  8 20:40:33 CDT 2021
+# Edit: Fri Sep 10 16:48:39 CDT 2021
 #
 # Jaakko Koivuniemi
 
@@ -21,6 +21,7 @@ MODULES      += SPIChip.o
 MODULES      += Max31865.o
 MODULES      += Ads1015.o
 MODULES      += Bh1750fvi.o
+MODULES      += Lis3mdl.o
 MODULES      += File.o
 MODULES      += SQLite.o
 MODULES      += i2chipd.o 
@@ -28,7 +29,7 @@ MODULES      += i2chipd.o
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-all: i2chipd test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi
+all: i2chipd test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi test_lis3mdl
 
 i2chipd: $(MODULES) 
 	$(LD) $(LDFLAGS) -lsqlite3 $^ -o $@
@@ -52,6 +53,9 @@ test_ads1015: I2Chip.o Ads1015.o test_ads1015.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 test_bh1750fvi: I2Chip.o Bh1750fvi.o test_bh1750fvi.o
+	$(LD) $(LDFLAGS) $^ -o $@
+
+test_lis3mdl: I2Chip.o Lis3mdl.o test_lis3mdl.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:

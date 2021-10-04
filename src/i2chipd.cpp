@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Sat Aug 21 13:55:54 CDT 2021
+ * Edit: Mon Sep 13 18:58:19 CDT 2021
  *
  * Jaakko Koivuniemi
  **/
@@ -56,7 +56,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20210821; // program version
+  const int version = 20210912; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -90,6 +90,7 @@ int main()
   bool bmp280x76 = false, bmp280x77 = false;
   bool bme680x76 = false, bme680x77 = false;
   bool bh1750fvix23 = false, bh1750fvix5C = false;
+  bool lis3mdlx1C = false, lis3mdlx1E = false;
   bool max31865_00 = false, max31865_01 = false;
 
   std::size_t pos;
@@ -120,7 +121,9 @@ int main()
           if( line.find("BME680_x77") != std::string::npos ) bme680x77 = true;
           if( line.find("BH1750FVI_x23") != std::string::npos ) bh1750fvix23 = true;
           if( line.find("BH1750FVI_x5C") != std::string::npos ) bh1750fvix5C = true;
-	  if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
+          if( line.find("LIS3MDL_x1C") != std::string::npos ) lis3mdlx1C = true;
+          if( line.find("LIS3MDL_x1E") != std::string::npos ) lis3mdlx1E = true;
+          if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
           if( line.find("MAX31865_01") != std::string::npos ) max31865_01 = true;
 
           pos = line.find("READINT");
@@ -158,6 +161,10 @@ int main()
   if( bh1750fvix23 ) bh1750fvi[ 0 ] = new Bh1750fvi("Ev1", i2cdev); else bh1750fvi[ 0 ] = nullptr;
   if( bh1750fvix5C ) bh1750fvi[ 1 ] = new Bh1750fvi("Ev2", i2cdev); else bh1750fvi[ 1 ] = nullptr;
 
+  Lis3mdl *lis3mdl[ 2 ];
+  if( lis3mdlx1C ) lis3mdl[ 0 ] = new Lis3mdl("B1", i2cdev); else lis3mdl[ 0 ] = nullptr;
+  if( lis3mdlx1E ) lis3mdl[ 1 ] = new Lis3mdl("B2", i2cdev); else lis3mdl[ 1 ] = nullptr;
+
   Max31865 *max31865[ 2 ];
   if( max31865_00 ) max31865[ 0 ] = new Max31865("TDR1", spidev00, 500000, 430);
   else max31865[ 0 ] = nullptr;
@@ -194,6 +201,16 @@ int main()
   bh1750fvi_Ev_file[ 0 ] = new File(datadir, "bh1750fvi_x23_Ev");
   bh1750fvi_Ev_file[ 1 ] = new File(datadir, "bh1750fvi_x5C_Ev");
 
+  File *lis3mdl_Bx_file[ 2 ], *lis3mdl_By_file[ 2 ], *lis3mdl_Bz_file[ 2 ], *lis3mdl_T_file[ 2 ];
+  lis3mdl_Bx_file[ 0 ] = new File(datadir, "lis3mdl_x1C_Bx");
+  lis3mdl_Bx_file[ 1 ] = new File(datadir, "lis3mdl_x1E_Bx");
+  lis3mdl_By_file[ 0 ] = new File(datadir, "lis3mdl_x1C_By");
+  lis3mdl_By_file[ 1 ] = new File(datadir, "lis3mdl_x1E_By");
+  lis3mdl_Bz_file[ 0 ] = new File(datadir, "lis3mdl_x1C_Bz");
+  lis3mdl_Bz_file[ 1 ] = new File(datadir, "lis3mdl_x1E_Bz");
+  lis3mdl_T_file[ 0 ] = new File(datadir, "lis3mdl_x1C_T");
+  lis3mdl_T_file[ 1 ] = new File(datadir, "lis3mdl_x1E_T");
+
   File *max31865_T_file[ 2 ], *max31865_R_file[ 2 ], *max31865_F_file[ 2 ];
   max31865_T_file[ 0 ] = new File(datadir, "max31865_00_T");
   max31865_T_file[ 1 ] = new File(datadir, "max31865_01_T");
@@ -208,6 +225,7 @@ int main()
   SQLite *bmp280_db  = new SQLite(sqlitedb, "bmp280", "insert into bmp280 (name,temperature,pressure) values (?,?,?)");
   SQLite *bme680_db  = new SQLite(sqlitedb, "bme680", "insert into bme680 (name,temperature,humidity,pressure,resistance,gasvalid,stable) values (?,?,?,?,?,?,?)");
   SQLite *bh1750fvi_db  = new SQLite(sqlitedb, "bh1750fvi", "insert into bh1750fvi (name,illuminance) values (?,?)");
+  SQLite *lis3mdl_db  = new SQLite(sqlitedb, "lis3mdl", "insert into lis3mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
 
   for( int i = 0; i < 4; i++)
@@ -324,6 +342,29 @@ int main()
     
   for( int i = 0; i < 2; i++)
   {
+    if( lis3mdl[ i ] )
+    {
+      if( i == 0 ) lis3mdl[ i ]->SetAddress0x1C(); 
+      else lis3mdl[ i ]->SetAddress0x1E();
+
+      lis3mdl[ i ]->SetXYOpMode( 3 );
+      lis3mdl[ i ]->SetZOpMode( 3 );
+      lis3mdl[ i ]->SetFullScale( 0 );
+      lis3mdl[ i ]->FastReadEnable();
+
+      fprintf(stderr, SD_INFO "%s %s %d\n", lis3mdl[ i ]->GetName().c_str(), lis3mdl[ i ]->GetDevice().c_str(), lis3mdl[ i ]->GetAddress() );
+
+      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis3mdl_db->GetTable().c_str() );
+
+      fprintf(stderr, SD_INFO "XY operation mode %d\n", lis3mdl[ i ]->GetXYOpMode());
+      fprintf(stderr, SD_INFO "Z operation mode %d\n", lis3mdl[ i ]->GetZOpMode());
+      fprintf(stderr, SD_INFO "Full scale %d\n", lis3mdl[ i ]->GetFullScale());
+      fprintf(stderr, SD_INFO "Fast read enabled\n");
+    }
+  }    
+    
+  for( int i = 0; i < 2; i++)
+  {
     if( max31865[ i ] )
     {
       max31865[ i ]->SetLowFault( 400 );
@@ -337,10 +378,12 @@ int main()
   }
 
   double T = 0, RH = 0, p = 0, R = 0, Ev = 0;
+  double Bx = 0, By = 0, Bz = 0;
   char Valid = 'N', Stable = 'N';
   int F = 0;
   double dbl_array[ 10 ];
   int int_array[ 10 ];
+  int j = 0;
   while( cont )
   {
     for(int i = 0; i < 4; i++)
@@ -427,7 +470,7 @@ int main()
         if( bme680[ i ]->GasValid() ) Valid = 'Y'; else Valid = 'N';
         if( bme680[ i ]->HeaterStable() ) Stable = 'Y'; else Stable = 'N';
 
-        fprintf(stderr, SD_INFO "%s = %f C, %f %%, %f Pa, %f ohm, %c, %c\n", bme680[ 1 ]->GetName().c_str(), T, RH, p, R, Valid, Stable);
+        fprintf(stderr, SD_INFO "%s = %f C, %f %%, %f Pa, %f ohm, %c, %c\n", bme680[ i ]->GetName().c_str(), T, RH, p, R, Valid, Stable);
 
         bme680_T_file[ i ]->Write( T );
         bme680_RH_file[ i ]->Write( RH );
@@ -473,7 +516,68 @@ int main()
         }
       }
     }
-      for(int i = 0; i < 2; i++)
+
+    for(int i = 0; i < 2; i++)
+    {
+      if( lis3mdl[ i ] )
+      {
+        lis3mdl[ i ]->ReadB();
+        lis3mdl[ i ]->ContinuousMode();
+//	lis3mdl[ i ]->SingleConversionMode();
+
+        j = 0;
+        while( !lis3mdl[ i ]->NewDataXYZ() && j < 1000 )
+        {
+          usleep( 100 ); // 100 us
+          j++;
+        }
+
+        if( lis3mdl[ i ]->NewDataXYZ() )
+        {
+          if( lis3mdl[ i ]->OverRunXYZ() )
+          {
+            fprintf(stderr, SD_NOTICE "%s reading overrun\n", lis3mdl[ i ]->GetName().c_str());
+          }
+          else
+          {
+            if( lis3mdl[ i ]->ReadB() )
+            {
+              Bx = lis3mdl[ i ]->GetBx();
+              By = lis3mdl[ i ]->GetBy();
+              Bz = lis3mdl[ i ]->GetBz();
+              T = -99;
+
+              fprintf(stderr, SD_INFO "%s Bx = %f uT, By = %f uT, Bz = %f uT , T = %f C\n", lis3mdl[ i ]->GetName().c_str(), Bx, By, Bz, T);
+
+	lis3mdl_Bx_file[ i ]->Write( Bx );
+              lis3mdl_By_file[ i ]->Write( By );
+              lis3mdl_Bz_file[ i ]->Write( Bz );
+              lis3mdl_T_file[ i ]->Write( T );
+
+              dbl_array[ 0 ] = Bx;
+              dbl_array[ 1 ] = By;
+              dbl_array[ 2 ] = Bz;
+              dbl_array[ 3 ] = T;
+
+              lis3mdl_db->Insert(lis3mdl[ i ]->GetName(), 4, dbl_array, sqlite_err);
+              if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+	    }
+            else
+            {
+              fprintf(stderr, SD_NOTICE "%s error reading magnetic field %d\n", lis3mdl[ i ]->GetName().c_str(), lis3mdl[ i ]->GetError() );
+            }
+          }
+	}
+	else
+        {
+          fprintf(stderr, SD_NOTICE "%s reading timeout\n", lis3mdl[ i ]->GetName().c_str());
+	}
+        lis3mdl[ i ]->PowerDown();
+        lis3mdl[ i ]->ReadB();
+      }
+    }
+
+    for(int i = 0; i < 2; i++)
     {
       if( max31865[ i ] )
       {
@@ -543,6 +647,17 @@ int main()
   for(int i = 0; i < 2; i++) delete bh1750fvi_Ev_file[ i ];
   delete bh1750fvi_db;
 
+  for(int i = 0; i < 2; i++) if( lis3mdl[ i ] ) delete lis3mdl[ i ];
+  for(int i = 0; i < 2; i++)
+  {
+    delete lis3mdl_Bx_file[ i ];
+    delete lis3mdl_By_file[ i ];
+    delete lis3mdl_Bz_file[ i ];
+    delete lis3mdl_T_file[ i ];
+  }
+  delete lis3mdl_db;
+
+  delete max31865_db;
   for(int i = 0; i < 2; i++) if( max31865[ i ] ) delete max31865[ i ];
   for(int i = 0; i < 2; i++)
   {
