@@ -2,7 +2,7 @@
  * 
  * SPIChip class member functions for configuration and reading chips. 
  *       
- * Copyright (C) 2018 - 2020 Jaakko Koivuniemi.
+ * Copyright (C) 2018 - 2021 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sat  3 Nov 20:21:27 CDT 2018
- * Edit: Fri 31 Jul 2020 04:46:21 PM CDT
+ * Edit: Mon 15 Nov 2021 07:53:00 PM CST
  *
  * Jaakko Koivuniemi
  **/
@@ -143,7 +143,7 @@ int SPIChip::SPIWriteByteRead(uint8_t reg, uint8_t byte, uint32_t nbytes, uint8_
 
          delay_usecs : delay,
          bits_per_word : bits,
-         cs_change : 1,
+         cs_change : 0,
          tx_nbits : 0,
          rx_nbits : 0,
          pad : 0
@@ -270,7 +270,7 @@ int SPIChip::SPIWriteWord(uint8_t reg, uint16_t word)
 
          delay_usecs : delay,
          bits_per_word : bits,
-         cs_change : 1,
+         cs_change : 0,
          tx_nbits : 0,
          rx_nbits : 0,
          pad : 0
