@@ -477,7 +477,7 @@ void I2Chip::I2cWriteRegisterUInt8(uint8_t reg, uint8_t data, uint16_t address, 
   sprintf(message, "I2C[%02X] write byte [%02X] to register [%02X]\n", address, buffer[ 1 ], buffer[ 0 ] );
   fprintf(stderr, SD_DEBUG "%s", message);
 
-  if( write(fd, buffer, 3) != 3 ) 
+  if( write(fd, buffer, 2) != 2 ) 
   {
     strncpy(message, strerror( errno ), 400);
     fprintf(stderr, SD_ERR "Error writing to I2C slave. %s\n", message);
