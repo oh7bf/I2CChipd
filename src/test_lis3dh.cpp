@@ -121,7 +121,7 @@ int main(int argc, char **argv)
     cout << "-- boot\n";
     chip->Boot();
     cout << "-- wait 10 ms\n";
-    usleep( 10000 ); // sleep 1 ms
+    usleep( 10000 ); // sleep 10 ms
 
     cout << "-- set output data rate 0\n";
     chip->SetDataRate( 0 );

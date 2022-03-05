@@ -31,6 +31,18 @@ temperature real,
 pressure real
 );
 
+create table lis3dh(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+gx real,
+gy real,
+gz real,
+adc1 real,
+adc2 real,
+adc3 real
+);
+
 create table lis3mdl(
 no integer primary key,
 ts timestamp default current_timestamp,

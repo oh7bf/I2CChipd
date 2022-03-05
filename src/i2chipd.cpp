@@ -2,7 +2,7 @@
  * 
  * Read chips with I2C interface. 
  *       
- * Copyright (C) 2020 - 2021 Jaakko Koivuniemi.
+ * Copyright (C) 2020 - 2022 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Mon Sep 13 18:58:19 CDT 2021
+ * Edit: Fri Mar  4 16:42:16 CST 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -56,7 +56,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20210912; // program version
+  const int version = 20220304; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -91,6 +91,7 @@ int main()
   bool bme680x76 = false, bme680x77 = false;
   bool bh1750fvix23 = false, bh1750fvix5C = false;
   bool lis3mdlx1C = false, lis3mdlx1E = false;
+  bool lis3dhx18 = false, lis3dhx19 = false;
   bool max31865_00 = false, max31865_01 = false;
 
   std::size_t pos;
@@ -121,9 +122,11 @@ int main()
           if( line.find("BME680_x77") != std::string::npos ) bme680x77 = true;
           if( line.find("BH1750FVI_x23") != std::string::npos ) bh1750fvix23 = true;
           if( line.find("BH1750FVI_x5C") != std::string::npos ) bh1750fvix5C = true;
+          if( line.find("LIS3DH_x18") != std::string::npos ) lis3dhx18 = true;
+          if( line.find("LIS3DH_x19") != std::string::npos ) lis3dhx19 = true;
           if( line.find("LIS3MDL_x1C") != std::string::npos ) lis3mdlx1C = true;
           if( line.find("LIS3MDL_x1E") != std::string::npos ) lis3mdlx1E = true;
-          if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
+	  if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
           if( line.find("MAX31865_01") != std::string::npos ) max31865_01 = true;
 
           pos = line.find("READINT");
@@ -165,6 +168,10 @@ int main()
   if( lis3mdlx1C ) lis3mdl[ 0 ] = new Lis3mdl("B1", i2cdev); else lis3mdl[ 0 ] = nullptr;
   if( lis3mdlx1E ) lis3mdl[ 1 ] = new Lis3mdl("B2", i2cdev); else lis3mdl[ 1 ] = nullptr;
 
+  Lis3dh *lis3dh[ 2 ];
+  if( lis3dhx18 ) lis3dh[ 0 ] = new Lis3dh("g1", i2cdev); else lis3dh[ 0 ] = nullptr;
+  if( lis3dhx19 ) lis3dh[ 1 ] = new Lis3dh("g2", i2cdev); else lis3dh[ 1 ] = nullptr;
+
   Max31865 *max31865[ 2 ];
   if( max31865_00 ) max31865[ 0 ] = new Max31865("TDR1", spidev00, 500000, 430);
   else max31865[ 0 ] = nullptr;
@@ -201,6 +208,20 @@ int main()
   bh1750fvi_Ev_file[ 0 ] = new File(datadir, "bh1750fvi_x23_Ev");
   bh1750fvi_Ev_file[ 1 ] = new File(datadir, "bh1750fvi_x5C_Ev");
 
+  File *lis3dh_gx_file[ 2 ], *lis3dh_gy_file[ 2 ], *lis3dh_gz_file[ 2 ], *lis3dh_adc1_file[ 2 ], *lis3dh_adc2_file[ 2 ], *lis3dh_adc3_file[ 2 ];
+  lis3dh_gx_file[ 0 ] = new File(datadir, "lis3dh_x18_gx");
+  lis3dh_gx_file[ 1 ] = new File(datadir, "lis3dh_x19_gx");
+  lis3dh_gy_file[ 0 ] = new File(datadir, "lis3dh_x18_gy");
+  lis3dh_gy_file[ 1 ] = new File(datadir, "lis3dh_x19_gy");
+  lis3dh_gz_file[ 0 ] = new File(datadir, "lis3dh_x18_gz");
+  lis3dh_gz_file[ 1 ] = new File(datadir, "lis3dh_x19_gz");
+  lis3dh_adc1_file[ 0 ] = new File(datadir, "lis3dh_x18_adc1");
+  lis3dh_adc1_file[ 1 ] = new File(datadir, "lis3dh_x19_adc1");
+  lis3dh_adc2_file[ 0 ] = new File(datadir, "lis3dh_x18_adc2");
+  lis3dh_adc2_file[ 1 ] = new File(datadir, "lis3dh_x19_adc2");
+  lis3dh_adc3_file[ 0 ] = new File(datadir, "lis3dh_x18_adc3");
+  lis3dh_adc3_file[ 1 ] = new File(datadir, "lis3dh_x19_adc3");
+
   File *lis3mdl_Bx_file[ 2 ], *lis3mdl_By_file[ 2 ], *lis3mdl_Bz_file[ 2 ], *lis3mdl_T_file[ 2 ];
   lis3mdl_Bx_file[ 0 ] = new File(datadir, "lis3mdl_x1C_Bx");
   lis3mdl_Bx_file[ 1 ] = new File(datadir, "lis3mdl_x1E_Bx");
@@ -225,6 +246,7 @@ int main()
   SQLite *bmp280_db  = new SQLite(sqlitedb, "bmp280", "insert into bmp280 (name,temperature,pressure) values (?,?,?)");
   SQLite *bme680_db  = new SQLite(sqlitedb, "bme680", "insert into bme680 (name,temperature,humidity,pressure,resistance,gasvalid,stable) values (?,?,?,?,?,?,?)");
   SQLite *bh1750fvi_db  = new SQLite(sqlitedb, "bh1750fvi", "insert into bh1750fvi (name,illuminance) values (?,?)");
+  SQLite *lis3dh_db  = new SQLite(sqlitedb, "lis3dh", "insert into lis3dh(name,gx,gy,gz,adc1,adc2,adc3) values (?,?,?,?,?,?,?)");
   SQLite *lis3mdl_db  = new SQLite(sqlitedb, "lis3mdl", "insert into lis3mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
 
@@ -342,6 +364,43 @@ int main()
     
   for( int i = 0; i < 2; i++)
   {
+    if( lis3dh[ i ] )
+    {
+      if( i == 0 ) lis3dh[ i ]->SetAddress0x18(); 
+      else lis3dh[ i ]->SetAddress0x19();
+
+      fprintf(stderr, SD_INFO "%s %s %d\n", lis3dh[ i ]->GetName().c_str(), lis3dh[ i ]->GetDevice().c_str(), lis3dh[ i ]->GetAddress() );
+      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis3dh_db->GetTable().c_str() );
+      fprintf(stderr, SD_INFO "Reboot memory content\n");
+      lis3dh[ i ]->Boot( );
+      usleep( 10000 );
+
+      lis3dh[ i ]->SetDataRate( 0 );
+
+      fprintf(stderr, SD_INFO "Enable X, Y and Z\n");
+      lis3dh[ i ]->XEnable();
+      lis3dh[ i ]->YEnable();
+      lis3dh[ i ]->ZEnable();
+
+      fprintf(stderr, SD_INFO "Set data rate 10 Hz\n");
+      lis3dh[ i ]->SetDataRate( 2 );
+
+      fprintf(stderr, SD_INFO "Set block data update\n");
+      lis3dh[ i ]->BlockDataEnable();
+
+      fprintf(stderr, SD_INFO "Start normal mode\n");
+      lis3dh[ i ]->NormalMode();
+
+      fprintf(stderr, SD_INFO "Enable ADC\n");
+      lis3dh[ i ]->ADCEnable();
+
+      fprintf(stderr, SD_INFO "Enable temperature measurement\n");
+      lis3dh[ i ]->TempEnable();
+    }
+  }    
+
+  for( int i = 0; i < 2; i++)
+  {
     if( lis3mdl[ i ] )
     {
       if( i == 0 ) lis3mdl[ i ]->SetAddress0x1C(); 
@@ -353,16 +412,14 @@ int main()
       lis3mdl[ i ]->FastReadEnable();
 
       fprintf(stderr, SD_INFO "%s %s %d\n", lis3mdl[ i ]->GetName().c_str(), lis3mdl[ i ]->GetDevice().c_str(), lis3mdl[ i ]->GetAddress() );
-
       fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis3mdl_db->GetTable().c_str() );
-
       fprintf(stderr, SD_INFO "XY operation mode %d\n", lis3mdl[ i ]->GetXYOpMode());
       fprintf(stderr, SD_INFO "Z operation mode %d\n", lis3mdl[ i ]->GetZOpMode());
       fprintf(stderr, SD_INFO "Full scale %d\n", lis3mdl[ i ]->GetFullScale());
       fprintf(stderr, SD_INFO "Fast read enabled\n");
     }
   }    
-    
+
   for( int i = 0; i < 2; i++)
   {
     if( max31865[ i ] )
@@ -379,6 +436,8 @@ int main()
 
   double T = 0, RH = 0, p = 0, R = 0, Ev = 0;
   double Bx = 0, By = 0, Bz = 0;
+  double gx = 0, gy = 0, gz = 0;
+  double adc1 = 0, adc2 = 0, adc3 = 0;
   char Valid = 'N', Stable = 'N';
   int F = 0;
   double dbl_array[ 10 ];
@@ -519,6 +578,77 @@ int main()
 
     for(int i = 0; i < 2; i++)
     {
+      if( lis3dh[ i ] )
+      {
+        lis3dh[ i ]->Boot();
+        lis3dh[ i ]->BlockDataEnable();
+        lis3dh[ i ]->NormalMode();
+
+        j = 0;
+        while( !lis3dh[ i ]->NewDataXYZ() && j < 2000 )
+	{
+          usleep( 1000 ); // sleep 1 ms
+          j++;
+        }
+    
+        if( lis3dh[ i ]->NewDataXYZ() )
+        {
+//          if( lis3dh[ i ]->OverRunXYZ() )
+//          {
+//            fprintf(stderr, SD_NOTICE "%s reading overrun\n", lis3dh[ i ]->GetName().c_str());
+//          }
+
+	  if( lis3dh[ i ]->Readg() )
+          {
+             gx = lis3dh[ i ]->Getgx();
+             gy = lis3dh[ i ]->Getgy();
+             gz = lis3dh[ i ]->Getgz();
+
+             fprintf(stderr, SD_INFO "%s gx = %f, gy = %f, gz = %f\n", lis3dh[ i ]->GetName().c_str(), gx, gy, gz);
+
+             lis3dh_gx_file[ i ]->Write( gx );
+             lis3dh_gy_file[ i ]->Write( gy );
+             lis3dh_gz_file[ i ]->Write( gz );
+
+             if( lis3dh[ i ]->ReadAdc() )
+             {
+               adc1 = lis3dh[ i ]->GetAdc1();
+               adc2 = lis3dh[ i ]->GetAdc2();
+               adc3 = lis3dh[ i ]->GetAdc3();
+
+               fprintf(stderr, SD_INFO "%s adc1 = %f, adc2 = %f, adc3 = %f\n", lis3dh[ i ]->GetName().c_str(), adc1, adc2, adc3);
+
+               lis3dh_adc1_file[ i ]->Write( adc1 );
+               lis3dh_adc2_file[ i ]->Write( adc2 );
+               lis3dh_adc3_file[ i ]->Write( adc3 );
+	     }
+
+             dbl_array[ 0 ] = gx;
+             dbl_array[ 1 ] = gy;
+             dbl_array[ 2 ] = gz;
+             dbl_array[ 3 ] = adc1;
+             dbl_array[ 4 ] = adc2;
+             dbl_array[ 5 ] = adc3;
+
+             lis3dh_db->Insert(lis3dh[ i ]->GetName(), 6, dbl_array, sqlite_err);
+             if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+           }
+           else
+           {
+             fprintf(stderr, SD_NOTICE "%s error reading g-force %d\n", lis3dh[ i ]->GetName().c_str(), lis3dh[ i ]->GetError() );
+           }
+        }
+        else
+        {
+          fprintf(stderr, SD_NOTICE "%s reading timeout\n", lis3dh[ i ]->GetName().c_str());
+        }
+
+//	lis3dh[ i ]->SetDataRate( 0 );
+      }	
+    }
+    
+    for(int i = 0; i < 2; i++)
+    {
       if( lis3mdl[ i ] )
       {
         lis3mdl[ i ]->ReadB();
@@ -549,7 +679,7 @@ int main()
 
               fprintf(stderr, SD_INFO "%s Bx = %f uT, By = %f uT, Bz = %f uT , T = %f C\n", lis3mdl[ i ]->GetName().c_str(), Bx, By, Bz, T);
 
-	lis3mdl_Bx_file[ i ]->Write( Bx );
+              lis3mdl_Bx_file[ i ]->Write( Bx );
               lis3mdl_By_file[ i ]->Write( By );
               lis3mdl_Bz_file[ i ]->Write( Bz );
               lis3mdl_T_file[ i ]->Write( T );

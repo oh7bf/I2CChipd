@@ -2,7 +2,7 @@
  * 
  * Read chips with I2C interface. 
  *       
- * Copyright (C) 2020 - 2022 Jaakko Koivuniemi.
+ * Copyright (C) 2022 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,25 +19,16 @@
  *
  ****************************************************************************
  *
- * Fri Jul  3 20:18:46 CDT 2020
- * Edit: Fri Mar  4 16:41:23 CST 2022
+ * Sun Feb 27 20:39:32 CST 2022
+ * Edit: 
  *
  * Jaakko Koivuniemi
  **/
 
 
-#ifndef _I2CHIPD_HPP
-#define _I2CHIPD_HPP
+#ifndef _TEST_LIS3DH_HPP
+#define _TEST_LIS3DH_HPP
 
-#include "Htu21d.hpp"
-#include "Tmp102.hpp"
-#include "Bmp280.hpp"
-#include "Bme680.hpp"
-#include "File.hpp"
-#include "SQLite.hpp"
-#include "Max31865.hpp"
-#include "Bh1750fvi.hpp"
-#include "Lis3mdl.hpp"
 #include "Lis3dh.hpp"
 
 #endif
