@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Fri Mar  4 16:42:16 CST 2022
+ * Edit: Sat Mar  5 20:03:58 CST 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -56,7 +56,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220304; // program version
+  const int version = 20220305; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -776,6 +776,18 @@ int main()
   for(int i = 0; i < 2; i++) if( bh1750fvi[ i ] ) delete bh1750fvi[ i ];
   for(int i = 0; i < 2; i++) delete bh1750fvi_Ev_file[ i ];
   delete bh1750fvi_db;
+
+  for(int i = 0; i < 2; i++) if( lis3dh[ i ] ) delete lis3dh[ i ];
+  for(int i = 0; i < 2; i++)
+  {
+    delete lis3dh_gx_file[ i ];
+    delete lis3dh_gy_file[ i ];
+    delete lis3dh_gz_file[ i ];
+    delete lis3dh_adc1_file[ i ];
+    delete lis3dh_adc2_file[ i ];
+    delete lis3dh_adc3_file[ i ];
+  }
+  delete lis3dh_db;
 
   for(int i = 0; i < 2; i++) if( lis3mdl[ i ] ) delete lis3mdl[ i ];
   for(int i = 0; i < 2; i++)
