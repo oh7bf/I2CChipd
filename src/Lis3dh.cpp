@@ -1448,6 +1448,41 @@ bool Lis3dh::ReadAdc()
 /// Read chip FIFO and return number of values 0 - 32.
 int8_t Lis3dh::ReadFifo()
 {
-  return 0;
+  int samples = Lis3dh::Samples();
+  if( Lis3dh::Overrun() ) samples++;
+
+  NFifo = 0;
+
+  if( samples > 0 && samples <= 32 )
+  { 
+    I2Chip::I2cWriteUInt8(LIS3DH_OUT_X_L | LIS3DH_MULTI_RW, address, buffer, error);
+
+    if( error != 0 )
+    {
+      return -1;
+    }
+    else
+    {
+      I2cReadBytes(6 * samples, address, buffer, error);
+
+      if( error != 0 )
+      {
+        return -2;
+      }
+      else
+      {
+        for( int i = 0; i < samples; i++)
+        {
+          FifoX[ i ] = (int16_t)( buffer[ 0 + 6 * i ] | ( buffer[ 1 + 6 * i ] << 8 ) );
+          FifoY[ i ] = (int16_t)( buffer[ 2 + 6 * i ] | ( buffer[ 3 + 6 * i ] << 8 ) );
+          FifoZ[ i ] = (int16_t)( buffer[ 4 + 6 * i ] | ( buffer[ 5 + 6 * i ] << 8 ) );
+        }
+
+        NFifo = samples;
+      }
+    }
+  }
+
+  return NFifo;
 }
 

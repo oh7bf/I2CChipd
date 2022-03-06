@@ -93,9 +93,16 @@ class Lis3dh : public I2Chip
     int16_t outX = 0; ///< last reading from OUT_X_L and OUT_X_H
     int16_t outY = 0; ///< last reading from OUT_Y_L and OUT_Y_H
     int16_t outZ = 0; ///< last reading from OUT_Z_L and OUT_Z_H
+
+    int16_t FifoX[ 32 ]; ///< last FIFO reading from OUT_X_L and OUT_X_H
+    int16_t FifoY[ 32 ]; ///< last FIFO reading from OUT_Y_L and OUT_Y_H
+    int16_t FifoZ[ 32 ]; ///< last FIFO reading from OUT_Z_L and OUT_Z_H
+    int NFifo = 0; /// FIFO length in array
+
     uint16_t Adc1 = 0; ///< last reading from OUT_ADC1_L and OUT_ADC1_H
     uint16_t Adc2 = 0; ///< last reading from OUT_ADC2_L and OUT_ADC2_H
     uint16_t Adc3 = 0; ///< last reading from OUT_ADC3_L and OUT_ADC3_H
+
     int FS = 2;    ///< Full-scale 2, 4, 8 or 16 g last setting  
     int So = 4; ///< Operation mode sensitivity [mg/digit] last setting  
     double gx;    ///< g-force x from last reading 
@@ -158,6 +165,15 @@ class Lis3dh : public I2Chip
 
     /// Get ADC3 from last reading. 
     uint16_t GetAdc3() { return Adc3; }
+
+    /// Get OUT_X FIFO from last reading.
+    int16_t * GetFifoX() { return FifoX; }
+
+    /// Get OUT_Y FIFO from last reading.
+    int16_t * GetFifoY() { return FifoY; }
+
+    /// Get OUT_Z FIFO from last reading.
+    int16_t * GetFifoZ() { return FifoZ; }
 
     /// Get FS (full-scale) constant.
     int GetFS() { return FS; }
