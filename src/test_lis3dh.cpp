@@ -65,14 +65,10 @@ int main(int argc, char **argv)
   cout << "      " << chip->GetDevice();
   cout << "         " << chip->GetAddress() << "\n";
 
-  bool overrun = true;
-  int i = 0, j = 0;
-  int error = 0;
+  int i = 0;
+//  int error = 0;
   uint8_t hpm = 0;
-  uint8_t hpcf = 0;
-  uint8_t datarate = 0;
   uint8_t fullscale = 0;
-  uint8_t reference = 0;
 
   if( !chip->WhoAmI() )
   {
@@ -174,7 +170,6 @@ int main(int argc, char **argv)
 
     cout << "outX[g]       outY[g]        outZ[g]     latency[ms]     Temp\n";
     int i, j, error = 0;
-    uint8_t status = 0;
     for( j = 0; j < 10; j++ )
     {
         i = 0;

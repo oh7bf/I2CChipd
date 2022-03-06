@@ -706,302 +706,670 @@ bool Lis3dh::NewDataXYZ()
 bool Lis3dh::OverRunXYZ()
 {
   uint8_t reg = 0;
-
   I2Chip::I2cWriteUInt8(LIS3DH_STATUS_REG, address, buffer, error);
   reg = I2Chip::I2cReadUInt8(address, buffer, error);
   reg &= 0x80;
-
   return (reg == 0x80);
 }
 
 /// Set bit I1_CLICK in CTRL_REG3.
 void Lis3dh::ClickInt1Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x80; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Clear bit I1_CLICK in CTRL_REG3.
 void Lis3dh::ClickInt1Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x7F; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Set bit I1_IA1 in CTRL_REG3.
 void Lis3dh::Ia1Int1Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x40; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Clear bit I1_IA1 in CTRL_REG3.
 void Lis3dh::Ia1Int1Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xBF; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Set bit I1_IA2 in CTRL_REG3.
 void Lis3dh::Ia2Int1Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x20; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Clear bit I1_IA2 in CTRL_REG3.
 void Lis3dh::Ia2Int1Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xDF; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Set bit I1_ZYXDA in CTRL_REG3.
 void Lis3dh::ZYXDaInt1Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x10; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Clear bit I1_ZYXDA in CTRL_REG3.
 void Lis3dh::ZYXDaInt1Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xEF; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Set bit I1_321DA in CTRL_REG3.
 void Lis3dh::Da321Int1Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x08; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Clear bit I1_321DA in CTRL_REG3.
 void Lis3dh::Da321Int1Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xF7; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Set bit I1_WTM in CTRL_REG3.
 void Lis3dh::WtmInt1Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x04; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Clear bit I1_WTM in CTRL_REG3.
 void Lis3dh::WtmInt1Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xFB; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Set bit I1_OVERRUN in CTRL_REG3.
 void Lis3dh::OverrunInt1Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x02; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Clear bit I1_OVERRUN in CTRL_REG3.
 void Lis3dh::OverrunInt1Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG3, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xFD; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG3, reg, address, buffer, error);
 }
 
 /// Set bit I2_CLICK in CTRL_REG6.
 void Lis3dh::ClickInt2Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x80; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Clear bit I2_CLICK in CTRL_REG6.
 void Lis3dh::ClickInt2Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x7F; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Set bit I2_IA1 in CTRL_REG6.
 void Lis3dh::Ia1Int2Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x40; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Clear bit I2_IA1 in CTRL_REG6.
 void Lis3dh::Ia1Int2Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xBF; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Set bit I2_IA2 in CTRL_REG6.
 void Lis3dh::Ia2Int2Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x20; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Clear bit I2_IA2 in CTRL_REG6.
 void Lis3dh::Ia2Int2Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xDF; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Set bit I2_BOOT in CTRL_REG6.
 void Lis3dh::Int2BootEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x10; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Clear bit I2_BOOT in CTRL_REG6.
 void Lis3dh::Int2BootDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xEF; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Set bit I2_ACT in CTRL_REG6.
 void Lis3dh::ActivityInt2Enable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x08; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
+
 
 /// Clear bit I2_ACT in CTRL_REG6.
 void Lis3dh::ActivityInt2Disable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xF7; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Clear bit INT_POLARITY in CTRL_REG6.
 void Lis3dh::IntActiveHigh()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xFD; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Set bit INT_POLARITY in CTRL_REG6.
 void Lis3dh::IntActiveLow()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CTRL_REG6, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x02; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CTRL_REG6, reg, address, buffer, error);
 }
 
 /// Set bit ZD in CLICK_CFG.
 void Lis3dh::DoubleTapZEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x20; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Clear bit ZD in CLICK_CFG.
 void Lis3dh::DoubleTapZDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xDF; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Set bit ZS in CLICK_CFG.
 void Lis3dh::SingleTapZEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x10; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Clear bit ZS in CLICK_CFG.
 void Lis3dh::SingleTapZDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xEF; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Set bit YD in CLICK_CFG.
 void Lis3dh::DoubleTapYEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x08; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Clear bit YD in CLICK_CFG.
 void Lis3dh::DoubleTapYDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xF7; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Set bit YS in CLICK_CFG.
 void Lis3dh::SingleTapYEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x04; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Clear bit YS in CLICK_CFG.
 void Lis3dh::SingleTapYDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xFB; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Set bit XD in CLICK_CFG.
 void Lis3dh::DoubleTapXEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x02; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Clear bit XD in CLICK_CFG.
 void Lis3dh::DoubleTapXDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xFD; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Set bit XS in CLICK_CFG.
 void Lis3dh::SingleTapXEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x01; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Clear bit XS in CLICK_CFG.
 void Lis3dh::SingleTapXDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0xFE; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_CFG, reg, address, buffer, error);
 }
 
 /// Read CLICK_SRC and return true if IA bit set. 
 bool Lis3dh::ClickInt()
 {
-  return false;
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_SRC, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x40;
+
+  return (reg == 0x40);
 }
 
 /// Read CLICK_SRC and return true if DCLICK bit set. 
 bool Lis3dh::DoubleClick()
 {
-  return false;
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_SRC, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x20;
+      
+  return (reg == 0x20);
 }
 
 /// Read CLICK_SRC and return true if SCLICK bit set. 
 bool Lis3dh::SingleClick()
 {
-  return false;
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_SRC, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x10;
+      
+  return (reg == 0x10);
 }
 
 /// Read CLICK_SRC and return true if negative detection Sign bit set. 
 bool Lis3dh::ClickSign()
 {
-  return false;
-}
+  uint8_t reg = 0;
 
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_SRC, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x08;
+      
+  return (reg == 0x08);
+}
+      
 /// Read CLICK_SRC and return true if Z bit set. 
 bool Lis3dh::ClickZ()
 {
-  return false;
-}
+  uint8_t reg = 0;
 
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_SRC, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x04;
+      
+  return (reg == 0x04);
+}
+      
 /// Read CLICK_SRC and return true if Y bit set. 
 bool Lis3dh::ClickY()
 {
-  return false;
-}
+  uint8_t reg = 0;
 
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_SRC, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x02;
+      
+  return (reg == 0x02);
+}
+      
 /// Read CLICK_SRC and return true if X bit set. 
 bool Lis3dh::ClickX()
 {
-  return false;
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_SRC, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x01;
+      
+  return (reg == 0x01);
 }
 
 /// Read bits Ths[6:0] from register CLICK_THS.
 uint8_t Lis3dh::GetClickThs()
 {
-  return 0;
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_THS, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x7F;
+      
+  return reg;
 }
 
 /// Modify bits Ths[6:0] in register CLICK_THS.
 void Lis3dh::SetClickThs(uint8_t Ths)
 {
+  uint8_t reg = 0;
+  Ths &= 0x7F;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_THS, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x80;
+  reg |= Ths;
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_THS, reg, address, buffer, error);
 }
 
 /// Set bit LIR_Click in CLICK_THS.
 void Lis3dh::ClickLatchEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_THS, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x80; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_THS, reg, address, buffer, error);
 }
 
 /// Clear bit LIR_Click in CLICK_THS.
 void Lis3dh::ClickLatchDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_CLICK_THS, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x7F; 
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_CLICK_THS, reg, address, buffer, error);
 }
 
 /// Modify bits TLI[6:0] in register TIME_LIMIT.
 void Lis3dh::SetClickTlimit(uint8_t Tli)
 {
+  uint8_t reg = 0;
+  Tli &= 0x7F;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_TIME_LIMIT, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x80;
+  reg |= Tli;
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_TIME_LIMIT, reg, address, buffer, error);
 }
 
 /// Modify bits TLA[7:0] in register TIME_LATENCY.
 void Lis3dh::SetClickTlatency(uint8_t Tla)
 {
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_TIME_LATENCY, Tla, address, buffer, error);
 }
 
 /// Modify bits TW[7:0] in register TIME_WINDOW.
 void Lis3dh::SetClickTwindow(uint8_t Tw)
 {
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_TIME_WINDOW, Tw, address, buffer, error);
 }
 
 /// Read bits Acth[6:0] from register ACT_THS.
 uint8_t Lis3dh::GetActThreshold()
 {
-  return 0;
+  uint8_t reg;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_ACT_THS, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x7F;
+      
+  return reg;
 }
 
 /// Modify bits Acth[6:0] in register ACT_THS.
 void Lis3dh::SetActThreshold(uint8_t Ths)
 {
+  uint8_t reg = 0;
+  Ths &= 0x7F;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_ACT_THS, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x80;
+  reg |= Ths;
+
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_ACT_THS, reg, address, buffer, error);
 }
 
 /// Read bits ActD[7:0] from register ACT_DUR.
 uint8_t Lis3dh::GetActDuration()
 {
-  return 0;
+  uint8_t reg;
+
+  I2Chip::I2cWriteUInt8(LIS3DH_ACT_DUR, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+      
+  return reg;
 }
 
 /// Modify bits ActD[7:0] in register ACT_DUR.
 void Lis3dh::SetActDuration(uint8_t Dur)
 {
+  I2Chip::I2cWriteRegisterUInt8(LIS3DH_ACT_DUR, Dur, address, buffer, error);
 }
 
 /// Self-test procedure. Return true if success.
@@ -1048,7 +1416,6 @@ bool Lis3dh::Readg()
 bool Lis3dh::ReadAdc()
 {
   bool success = true;
-  uint8_t reg = 0;
 
   I2Chip::I2cWriteUInt8(LIS3DH_OUT_ADC1_L | LIS3DH_MULTI_RW, address, buffer, error);
 
