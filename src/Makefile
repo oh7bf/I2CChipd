@@ -3,7 +3,7 @@
 # Makefile for compiling 'i2chipd' on Raspberry Pi. 
 #
 # Fri Jul  3 11:50:56 CDT 2020
-# Edit: Sun Feb 27 20:11:33 CST 2022
+# Edit: Sat 26 Mar 2022 01:07:33 PM CET
 #
 # Jaakko Koivuniemi
 
@@ -23,6 +23,7 @@ MODULES      += Ads1015.o
 MODULES      += Bh1750fvi.o
 MODULES      += Lis3mdl.o
 MODULES      += Lis3dh.o
+MODULES      += Lis2mdl.o
 MODULES      += File.o
 MODULES      += SQLite.o
 MODULES      += i2chipd.o 
@@ -30,10 +31,10 @@ MODULES      += i2chipd.o
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-all: i2chipd test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi test_lis3mdl test_lis3dh
+all: i2chipd test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi test_lis3mdl test_lis3dh test_lis2mdl
 
 i2chipd: $(MODULES) 
-	$(LD) $(LDFLAGS) -lsqlite3 $^ -o $@
+	$(LD) $(LDFLAGS) $^ -lsqlite3 -o $@
 
 test_bmp280: I2Chip.o Bmp280.o test_bmp280.o
 	$(LD) $(LDFLAGS) $^ -o $@
@@ -60,6 +61,9 @@ test_lis3mdl: I2Chip.o Lis3mdl.o test_lis3mdl.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 test_lis3dh: I2Chip.o Lis3dh.o test_lis3dh.o
+	$(LD) $(LDFLAGS) $^ -o $@
+
+test_lis2mdl: I2Chip.o Lis2mdl.o test_lis2mdl.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:
