@@ -43,6 +43,16 @@ adc2 real,
 adc3 real
 );
 
+create table lis2mdl(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+Bx real,
+By real,
+Bz real,
+temperature real
+);
+
 create table lis3mdl(
 no integer primary key,
 ts timestamp default current_timestamp,
