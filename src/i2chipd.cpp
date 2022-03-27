@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Sat Mar  5 20:03:58 CST 2022
+ * Edit: Sun 27 Mar 2022 03:24:15 PM CEST
  *
  * Jaakko Koivuniemi
  **/
@@ -56,7 +56,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220305; // program version
+  const int version = 20220327; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -90,6 +90,7 @@ int main()
   bool bmp280x76 = false, bmp280x77 = false;
   bool bme680x76 = false, bme680x77 = false;
   bool bh1750fvix23 = false, bh1750fvix5C = false;
+  bool lis2mdlx1E = false;
   bool lis3mdlx1C = false, lis3mdlx1E = false;
   bool lis3dhx18 = false, lis3dhx19 = false;
   bool max31865_00 = false, max31865_01 = false;
@@ -124,6 +125,7 @@ int main()
           if( line.find("BH1750FVI_x5C") != std::string::npos ) bh1750fvix5C = true;
           if( line.find("LIS3DH_x18") != std::string::npos ) lis3dhx18 = true;
           if( line.find("LIS3DH_x19") != std::string::npos ) lis3dhx19 = true;
+          if( line.find("LIS2MDL_x1E") != std::string::npos ) lis2mdlx1E = true;
           if( line.find("LIS3MDL_x1C") != std::string::npos ) lis3mdlx1C = true;
           if( line.find("LIS3MDL_x1E") != std::string::npos ) lis3mdlx1E = true;
 	  if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
@@ -163,6 +165,9 @@ int main()
   Bh1750fvi *bh1750fvi[ 2 ];
   if( bh1750fvix23 ) bh1750fvi[ 0 ] = new Bh1750fvi("Ev1", i2cdev); else bh1750fvi[ 0 ] = nullptr;
   if( bh1750fvix5C ) bh1750fvi[ 1 ] = new Bh1750fvi("Ev2", i2cdev); else bh1750fvi[ 1 ] = nullptr;
+
+  Lis2mdl *lis2mdl;
+  if( lis2mdlx1E ) lis2mdl = new Lis2mdl("B0", i2cdev); else lis2mdl = nullptr;
 
   Lis3mdl *lis3mdl[ 2 ];
   if( lis3mdlx1C ) lis3mdl[ 0 ] = new Lis3mdl("B1", i2cdev); else lis3mdl[ 0 ] = nullptr;
@@ -222,6 +227,12 @@ int main()
   lis3dh_adc3_file[ 0 ] = new File(datadir, "lis3dh_x18_adc3");
   lis3dh_adc3_file[ 1 ] = new File(datadir, "lis3dh_x19_adc3");
 
+  File *lis2mdl_Bx_file, *lis2mdl_By_file, *lis2mdl_Bz_file, *lis2mdl_T_file;
+  lis2mdl_Bx_file = new File(datadir, "lis2mdl_x1E_Bx");
+  lis2mdl_By_file = new File(datadir, "lis2mdl_x1E_By");
+  lis2mdl_Bz_file = new File(datadir, "lis2mdl_x1E_Bz");
+  lis2mdl_T_file = new File(datadir, "lis2mdl_x1E_T");
+
   File *lis3mdl_Bx_file[ 2 ], *lis3mdl_By_file[ 2 ], *lis3mdl_Bz_file[ 2 ], *lis3mdl_T_file[ 2 ];
   lis3mdl_Bx_file[ 0 ] = new File(datadir, "lis3mdl_x1C_Bx");
   lis3mdl_Bx_file[ 1 ] = new File(datadir, "lis3mdl_x1E_Bx");
@@ -247,6 +258,7 @@ int main()
   SQLite *bme680_db  = new SQLite(sqlitedb, "bme680", "insert into bme680 (name,temperature,humidity,pressure,resistance,gasvalid,stable) values (?,?,?,?,?,?,?)");
   SQLite *bh1750fvi_db  = new SQLite(sqlitedb, "bh1750fvi", "insert into bh1750fvi (name,illuminance) values (?,?)");
   SQLite *lis3dh_db  = new SQLite(sqlitedb, "lis3dh", "insert into lis3dh(name,gx,gy,gz,adc1,adc2,adc3) values (?,?,?,?,?,?,?)");
+  SQLite *lis2mdl_db  = new SQLite(sqlitedb, "lis2mdl", "insert into lis2mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *lis3mdl_db  = new SQLite(sqlitedb, "lis3mdl", "insert into lis3mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
 
@@ -398,6 +410,28 @@ int main()
       lis3dh[ i ]->TempEnable();
     }
   }    
+
+  if( lis2mdl && lis2mdl->WhoAmI() )
+  {
+    fprintf(stderr, SD_INFO "Enable temperature compensation\n");
+    lis2mdl->TempCompEnable();
+    fprintf(stderr, SD_INFO "Enable block data\n");
+    lis2mdl->BlockDataEnable();
+
+    fprintf(stderr, SD_INFO "%s %s %d\n", lis2mdl->GetName().c_str(), lis2mdl->GetDevice().c_str(), lis2mdl->GetAddress() );
+    fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis2mdl_db->GetTable().c_str() );
+    fprintf(stderr, SD_INFO "Operation mode %d\n", lis2mdl->GetOpMode());
+    fprintf(stderr, SD_INFO "Data rate %d\n", lis2mdl->GetDataRate());
+    fprintf(stderr, SD_INFO "X offset register %d\n", lis2mdl->GetXOffset());
+    fprintf(stderr, SD_INFO "Y offset register %d\n", lis2mdl->GetYOffset());
+    fprintf(stderr, SD_INFO "Z offset register %d\n", lis2mdl->GetZOffset());
+
+  }
+  else
+  {
+    fprintf(stderr, SD_ERR "LIS2MDL not found from i2c bus address 0x1E, drop from reading loop\n");
+    lis2mdl = nullptr;
+  }
 
   for( int i = 0; i < 2; i++)
   {
@@ -570,8 +604,8 @@ int main()
 
           dbl_array[ 0 ] = Ev;
 
-        bh1750fvi_db->Insert(bh1750fvi[ i ]->GetName(), 1, dbl_array, sqlite_err);
-        if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+          bh1750fvi_db->Insert(bh1750fvi[ i ]->GetName(), 1, dbl_array, sqlite_err);
+          if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
         }
       }
     }
@@ -647,6 +681,61 @@ int main()
       }	
     }
     
+    if( lis2mdl )
+    {
+      fprintf(stderr, SD_INFO "%s start single measurement mode\n", lis2mdl->GetName().c_str() );
+      lis2mdl->SingleMode();
+
+      j = 0;
+      while( !lis2mdl->NewDataXYZ() && j < 1000 )
+      {
+        usleep( 100 ); // 100 us
+	j++;
+      }
+  
+      if( lis2mdl->NewDataXYZ() )
+      {
+        if( lis2mdl->OverRunXYZ() )
+        {
+          fprintf(stderr, SD_NOTICE "%s reading overrun\n", lis2mdl->GetName().c_str());
+        }
+	else
+        {
+          if( lis2mdl->ReadB() )
+          {
+            Bx = lis2mdl->GetBx();
+            By = lis2mdl->GetBy();
+            Bz = lis2mdl->GetBz();
+            T = -99;
+
+            fprintf(stderr, SD_INFO "%s Bx = %f uT, By = %f uT, Bz = %f uT , T = %f C\n", lis2mdl->GetName().c_str(), Bx, By, Bz, T);
+
+            lis2mdl_Bx_file->Write( Bx );
+            lis2mdl_By_file->Write( By );
+            lis2mdl_Bz_file->Write( Bz );
+            lis2mdl_T_file->Write( T );
+
+            dbl_array[ 0 ] = Bx;
+            dbl_array[ 1 ] = By;
+            dbl_array[ 2 ] = Bz;
+            dbl_array[ 3 ] = T;
+
+            lis2mdl_db->Insert(lis2mdl->GetName(), 4, dbl_array, sqlite_err);
+
+            if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+	  }
+	  else
+          {
+            fprintf(stderr, SD_NOTICE "%s error reading magnetic field %d\n", lis2mdl->GetName().c_str(), lis2mdl->GetError() );
+          }
+        }
+      }
+      else
+      {
+        fprintf(stderr, SD_NOTICE "%s reading timeout\n", lis2mdl->GetName().c_str());
+      }
+    }
+
     for(int i = 0; i < 2; i++)
     {
       if( lis3mdl[ i ] )

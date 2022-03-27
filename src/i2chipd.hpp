@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:18:46 CDT 2020
- * Edit: Fri Mar  4 16:41:23 CST 2022
+ * Edit: Sat 26 Mar 2022 08:40:21 PM CET
  *
  * Jaakko Koivuniemi
  **/
@@ -39,5 +39,6 @@
 #include "Bh1750fvi.hpp"
 #include "Lis3mdl.hpp"
 #include "Lis3dh.hpp"
+#include "Lis2mdl.hpp"
 
 #endif
