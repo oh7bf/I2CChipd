@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Sun 27 Mar 2022 03:24:15 PM CEST
+ * Edit: Tue 29 Mar 2022 08:06:40 PM CEST
  *
  * Jaakko Koivuniemi
  **/
@@ -32,6 +32,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <dis.hxx>
 
 using namespace std;
 
@@ -56,14 +57,15 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220327; // program version
+  const int version = 20220329; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
   string spidev01 = "/dev/spidev0.1";
   string datadir = "/tmp/";
   string sqlitedb = "/var/lib/i2chipd/i2chipd.db";
-
+  string dimserver = "";
+  string dimdns = "localhost";
   int readinterval = 120;
   int sqlite_err = 0;
 
@@ -137,7 +139,21 @@ int main()
             readinterval = atoi( line.substr(pos+7, line.length() - pos - 7 ).c_str() );
             fprintf(stderr, SD_INFO "read interval %d s\n", readinterval );
           }
-        }
+
+          pos = line.find("DIMSERVER");
+          if( pos != std::string::npos ) 
+          {
+            dimserver = line.substr(pos+10, line.length() - pos - 10 ).c_str();
+            fprintf(stderr, SD_INFO "DIM server %s\n", dimserver );
+          }
+
+          pos = line.find("DIMDNS");
+          if( pos != std::string::npos ) 
+          {
+            dimdns = line.substr(pos+7, line.length() - pos - 7 ).c_str();
+            fprintf(stderr, SD_INFO "DIM name server %s\n", dimdns );
+          }
+	}
       }
     } 
     confile.close();
@@ -262,6 +278,140 @@ int main()
   SQLite *lis3mdl_db  = new SQLite(sqlitedb, "lis3mdl", "insert into lis3mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
 
+// DIM services
+  double bme680x76_T = 0, bme680x76_RH = 0, bme680x76_p = 0, bme680x76_R = 0;
+  DimService *Bme680x76T, *Bme680x76RH, *Bme680x76p, *Bme680x76R;
+
+  double bme680x77_T = 0, bme680x77_RH = 0, bme680x77_p = 0, bme680x77_R = 0;
+  DimService *Bme680x77T, *Bme680x77RH, *Bme680x77p, *Bme680x77R;
+
+  double bh1750fvix23_Ev = 0, bh1750fvix5C_Ev = 0;
+  DimService *bh1750fvix23Ev, *bh1750fvix5CEv;
+
+  double lis2mdlx1E_Bx = 0, lis2mdlx1E_By = 0, lis2mdlx1E_Bz = 0, lis2mdlx1E_T = 0;
+  DimService *lis2mdlx1EBx, *lis2mdlx1EBy, *lis2mdlx1EBz, *lis2mdlx1ET;
+
+  double lis3dhx18_gx = 0, lis3dhx18_gy = 0, lis3dhx18_gz = 0, lis3dhx18_adc1 = 0, lis3dhx18_adc2 = 0, lis3dhx18_adc3 = 0;
+	  
+  DimService *lis3dhx18gx, *lis3dhx18gy, *lis3dhx18gz, *lis3dhx18adc1, *lis3dhx18adc2, *lis3dhx18adc3;
+
+  double lis3dhx19_gx = 0, lis3dhx19_gy = 0, lis3dhx19_gz = 0, lis3dhx19_adc1 = 0, lis3dhx19_adc2 = 0, lis3dhx19_adc3 = 0;
+	  
+  DimService *lis3dhx19gx, *lis3dhx19gy, *lis3dhx19gz, *lis3dhx19adc1, *lis3dhx19adc2, *lis3dhx19adc3;
+
+  fprintf(stderr, SD_DEBUG "Create DIM services bme680x76_*\n");
+  if( bme680x76 )
+  {
+    Bme680x76T = new DimService( (dimserver + "/bme680x76_T").c_str(), bme680x76_T);
+    Bme680x76RH = new DimService( (dimserver + "/bme680x76_RH").c_str(), bme680x76_RH);
+    Bme680x76p = new DimService( (dimserver + "/bme680x76_p").c_str(), bme680x76_p);
+    Bme680x76R = new DimService( (dimserver + "/bme680x76_R").c_str(), bme680x76_R);
+  }
+  else
+  {
+    Bme680x76T = nullptr; 
+    Bme680x76RH = nullptr;
+    Bme680x76p = nullptr;
+    Bme680x76R = nullptr;
+  }
+
+  fprintf(stderr, SD_DEBUG "Create DIM services bme680x77_*\n");
+  if( bme680x77 )
+  {
+    Bme680x77T = new DimService( (dimserver + "/bme680x77_T").c_str(), bme680x77_T);
+    Bme680x77RH = new DimService( (dimserver + "/bme680x77_RH").c_str(), bme680x77_RH);
+    Bme680x77p = new DimService( (dimserver + "/bme680x77_p").c_str(), bme680x77_p);
+    Bme680x77R = new DimService( (dimserver + "/bme680x77_R").c_str(), bme680x77_R);
+  }
+  else
+  {
+    Bme680x77T = nullptr; 
+    Bme680x77RH = nullptr;
+    Bme680x77p = nullptr;
+    Bme680x77R = nullptr;
+  }
+
+  if( bh1750fvix23 )
+  {
+    bh1750fvix23Ev = new DimService( (dimserver + "/bh1750fvix23_Ev").c_str(), bh1750fvix23_Ev);
+  }
+  else
+  {
+    bh1750fvix23Ev = nullptr;
+  }
+
+  if( bh1750fvix5C )
+  {
+    bh1750fvix5CEv = new DimService( (dimserver + "/bh1750fvix5C_Ev").c_str(), bh1750fvix5C_Ev);
+  }
+  else
+  {
+    bh1750fvix5CEv = nullptr;
+  }
+
+  if( lis2mdlx1E )
+  {
+    lis2mdlx1EBx = new DimService( (dimserver + "/lis2mdlx1E_Bx").c_str(), lis2mdlx1E_Bx);
+    lis2mdlx1EBy = new DimService( (dimserver + "/lis2mdlx1E_By").c_str(), lis2mdlx1E_By);
+    lis2mdlx1EBz = new DimService( (dimserver + "/lis2mdlx1E_Bz").c_str(), lis2mdlx1E_Bz);
+    lis2mdlx1ET = new DimService( (dimserver + "/lis2mdlx1E_T").c_str(), lis2mdlx1E_T);
+  }
+  else
+  {
+    lis2mdlx1EBx = nullptr;
+    lis2mdlx1EBy = nullptr;
+    lis2mdlx1EBz = nullptr;
+    lis2mdlx1ET = nullptr;
+  }
+
+  if( lis3dhx18 )
+  {
+    lis3dhx18gx = new DimService( (dimserver + "/lis3dhx18_gx").c_str(), lis3dhx18_gx);
+    lis3dhx18gy = new DimService( (dimserver + "/lis3dhx18_gy").c_str(), lis3dhx18_gy);
+    lis3dhx18gz = new DimService( (dimserver + "/lis3dhx18_gz").c_str(), lis3dhx18_gz);
+    lis3dhx18adc1 = new DimService( (dimserver + "/lis3dhx18_adc1").c_str(), lis3dhx18_adc1);
+    lis3dhx18adc2 = new DimService( (dimserver + "/lis3dhx18_adc2").c_str(), lis3dhx18_adc2);
+    lis3dhx18adc3 = new DimService( (dimserver + "/lis3dhx18_adc3").c_str(), lis3dhx18_adc3);
+  }
+  else
+  {
+    lis3dhx18gx = nullptr;
+    lis3dhx18gy = nullptr;
+    lis3dhx18gz = nullptr;
+    lis3dhx18adc1 = nullptr;
+    lis3dhx18adc2 = nullptr;
+    lis3dhx18adc3 = nullptr;
+  }
+
+  if( lis3dhx19 )
+  {
+    lis3dhx19gx = new DimService( (dimserver + "/lis3dhx19_gx").c_str(), lis3dhx19_gx);
+    lis3dhx19gy = new DimService( (dimserver + "/lis3dhx19_gy").c_str(), lis3dhx19_gy);
+    lis3dhx19gz = new DimService( (dimserver + "/lis3dhx19_gz").c_str(), lis3dhx19_gz);
+    lis3dhx19adc1 = new DimService( (dimserver + "/lis3dhx19_adc1").c_str(), lis3dhx19_adc1);
+    lis3dhx19adc2 = new DimService( (dimserver + "/lis3dhx19_adc2").c_str(), lis3dhx19_adc2);
+    lis3dhx19adc3 = new DimService( (dimserver + "/lis3dhx19_adc3").c_str(), lis3dhx19_adc3);
+  }
+  else
+  {
+    lis3dhx19gx = nullptr;
+    lis3dhx19gy = nullptr;
+    lis3dhx19gz = nullptr;
+    lis3dhx19adc1 = nullptr;
+    lis3dhx19adc2 = nullptr;
+    lis3dhx19adc3 = nullptr;
+  }
+
+  // start DIM server
+  bool dimruns = false;
+  if( dimserver != "" )
+  {
+    DimServer::setDnsNode( dimdns.c_str() );
+    DimServer::start( dimserver.c_str() );
+    dimruns = true;
+  }
+
+  // chip initializations
   for( int i = 0; i < 4; i++)
   {
     if( tmp102[ i ] )
@@ -344,20 +494,20 @@ int main()
         return -1;
       }
 
-     fprintf(stderr, SD_INFO "%d H, %d T and %d p oversampling\n", bme680_HOverSample[ i ], bme680_TOverSample[ i ], bme680_POverSample[ i ] );
-     bme680[ i ]->SetOverSample( bme680_HOverSample[ i ], bme680_TOverSample[ i ], bme680_POverSample[ i ] );
+      fprintf(stderr, SD_INFO "%d H, %d T and %d p oversampling\n", bme680_HOverSample[ i ], bme680_TOverSample[ i ], bme680_POverSample[ i ] );
+      bme680[ i ]->SetOverSample( bme680_HOverSample[ i ], bme680_TOverSample[ i ], bme680_POverSample[ i ] );
 
-     fprintf(stderr, SD_INFO "filter %d\n", bme680_Filter[ i ] );
-     bme680[ i ]->SetFilter( bme680_Filter[ i ] );
+      fprintf(stderr, SD_INFO "filter %d\n", bme680_Filter[ i ] );
+      bme680[ i ]->SetFilter( bme680_Filter[ i ] );
 
-    fprintf(stderr, SD_INFO "profile 0: 0x%02x pulse, ambient %d C, target %d C\n", bme680_GasWaitTime[ i ], Tamb, bme680_T0[ i ]);
-    bme680[ i ]->SetGasWaitTime(0, bme680_GasWaitTime[ i ]); 
-    bme680[ i ]->SetGasHeatTemperature(0, Tamb, bme680_T0[ i ]); // 
-    bme680[ i ]->RunGas();
-    bme680[ i ]->HeaterOn();
-    bme680[ i ]->SetHeaterProfile( 0 );
+      fprintf(stderr, SD_INFO "profile 0: 0x%02x pulse, ambient %d C, target %d C\n", bme680_GasWaitTime[ i ], Tamb, bme680_T0[ i ]);
+      bme680[ i ]->SetGasWaitTime(0, bme680_GasWaitTime[ i ]); 
+      bme680[ i ]->SetGasHeatTemperature(0, Tamb, bme680_T0[ i ]); // 
+      bme680[ i ]->RunGas();
+      bme680[ i ]->HeaterOn();
+      bme680[ i ]->SetHeaterProfile( 0 );
 
-    fprintf(stderr, SD_DEBUG "SQLite table: %s\n", bme680_db->GetTable().c_str() );
+      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", bme680_db->GetTable().c_str() );
     }
   }
 
@@ -580,6 +730,31 @@ int main()
         bme680_db->Insert(bme680[ i ]->GetName(), 4, dbl_array, 2, int_array, sqlite_err);
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
+	if( i == 0 && dimruns )
+        {
+          fprintf(stderr, SD_DEBUG "Update DIM services bme680x76_*\n");
+          bme680x76_T = T;
+          Bme680x76T->updateService();
+          bme680x76_RH = RH;
+          Bme680x76RH->updateService();
+          bme680x76_p = p;
+          Bme680x76p->updateService();
+          bme680x76_R = R;
+          Bme680x76R->updateService();
+        }
+	else if( dimruns )
+        {
+          fprintf(stderr, SD_DEBUG "Update DIM services bme680x77_*\n");
+          bme680x77_T = T;
+          Bme680x77T->updateService();
+          bme680x77_RH = RH;
+          Bme680x77RH->updateService();
+          bme680x77_p = p;
+          Bme680x77p->updateService();
+          bme680x77_R = R;
+          Bme680x77R->updateService();
+        }
+
         Tamb = (int8_t)T;
 
         fprintf(stderr, SD_INFO "profile 0: 0x%02x pulse, ambient %d C, target %d C\n", bme680_GasWaitTime[ i ], Tamb, bme680_T0[ i ]);
@@ -606,7 +781,18 @@ int main()
 
           bh1750fvi_db->Insert(bh1750fvi[ i ]->GetName(), 1, dbl_array, sqlite_err);
           if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
-        }
+
+          if( i == 0 && dimruns )
+          {
+            bh1750fvix23_Ev = Ev;
+            bh1750fvix23Ev->updateService();
+	  }
+	  else if( dimruns )
+          {
+            bh1750fvix5C_Ev = Ev;
+            bh1750fvix5CEv->updateService();
+          }
+	}
       }
     }
 
@@ -666,7 +852,40 @@ int main()
 
              lis3dh_db->Insert(lis3dh[ i ]->GetName(), 6, dbl_array, sqlite_err);
              if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
-           }
+
+             if( i == 0 && dimruns )
+             {
+               lis3dhx18_gx = gx;
+               lis3dhx18gx->updateService();
+               lis3dhx18_gy = gy;
+               lis3dhx18gy->updateService();
+               lis3dhx18_gz = gz;
+               lis3dhx18gz->updateService();
+
+               lis3dhx18_adc1 = adc1;
+               lis3dhx18adc1->updateService();
+               lis3dhx18_adc2 = adc2;
+               lis3dhx18adc2->updateService();
+               lis3dhx18_adc3 = adc3;
+               lis3dhx18adc3->updateService();
+             }
+             else if( dimruns )
+	     {
+               lis3dhx19_gx = gx;
+               lis3dhx19gx->updateService();
+               lis3dhx19_gy = gy;
+               lis3dhx19gy->updateService();
+               lis3dhx19_gz = gz;
+               lis3dhx19gz->updateService();
+
+	       lis3dhx19_adc1 = adc1;
+               lis3dhx19adc1->updateService();
+               lis3dhx19_adc2 = adc2;
+               lis3dhx19adc2->updateService();
+               lis3dhx19_adc3 = adc3;
+               lis3dhx19adc3->updateService();
+	     }
+	  }
            else
            {
              fprintf(stderr, SD_NOTICE "%s error reading g-force %d\n", lis3dh[ i ]->GetName().c_str(), lis3dh[ i ]->GetError() );
@@ -723,8 +942,20 @@ int main()
             lis2mdl_db->Insert(lis2mdl->GetName(), 4, dbl_array, sqlite_err);
 
             if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
-	  }
-	  else
+
+            if( dimruns )
+	    {
+              lis2mdlx1E_Bx = Bx;
+              lis2mdlx1EBx->updateService();
+              lis2mdlx1E_By = By;
+              lis2mdlx1EBy->updateService();
+	      lis2mdlx1E_Bz = Bz;
+              lis2mdlx1EBz->updateService();
+	      lis2mdlx1E_T = T;
+              lis2mdlx1ET->updateService();
+	    }
+          }
+          else
           {
             fprintf(stderr, SD_NOTICE "%s error reading magnetic field %d\n", lis2mdl->GetName().c_str(), lis2mdl->GetError() );
           }

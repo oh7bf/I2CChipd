@@ -9,8 +9,11 @@
 
 CXX           = g++
 CXXFLAGS      = -g -O2 -Wall -Wextra -std=c++11 
+INCDIM        = /home/me/dim_v20r32/dim
+LIBDIM        = /home/me/dim_v20r32/linux
 LD            = g++
 LDFLAGS       = -O2
+
 
 MODULES       = I2Chip.o 
 MODULES      += Tmp102.o
@@ -29,12 +32,12 @@ MODULES      += SQLite.o
 MODULES      += i2chipd.o 
 
 %.o : %.cpp
-	$(CXX) $(CXXFLAGS) -c $<
+	$(CXX) -I$(INCDIM) $(CXXFLAGS) -c $<
 
 all: i2chipd test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi test_lis3mdl test_lis3dh test_lis2mdl
 
 i2chipd: $(MODULES) 
-	$(LD) $(LDFLAGS) $^ -lsqlite3 -o $@
+	$(LD) $(LDFLAGS) -L$(LIBDIM) $^ -ldim -lsqlite3 -o $@
 
 test_bmp280: I2Chip.o Bmp280.o test_bmp280.o
 	$(LD) $(LDFLAGS) $^ -o $@
