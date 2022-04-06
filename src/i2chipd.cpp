@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Tue 29 Mar 2022 08:06:40 PM CEST
+ * Edit: Wed 06 Apr 2022 08:26:50 AM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -57,7 +57,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220329; // program version
+  const int version = 20220406; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -144,14 +144,14 @@ int main()
           if( pos != std::string::npos ) 
           {
             dimserver = line.substr(pos+10, line.length() - pos - 10 ).c_str();
-            fprintf(stderr, SD_INFO "DIM server %s\n", dimserver );
+            fprintf(stderr, SD_INFO "DIM server %s\n", dimserver.c_str() );
           }
 
           pos = line.find("DIMDNS");
           if( pos != std::string::npos ) 
           {
             dimdns = line.substr(pos+7, line.length() - pos - 7 ).c_str();
-            fprintf(stderr, SD_INFO "DIM name server %s\n", dimdns );
+            fprintf(stderr, SD_INFO "DIM name server %s\n", dimdns.c_str() );
           }
 	}
       }
@@ -215,9 +215,11 @@ int main()
   bmp280_p_file[ 0 ] = new File(datadir, "bmp280_x76_p");
   bmp280_p_file[ 1 ] = new File(datadir, "bmp280_x77_p");
 
-  File *bme680_T_file[ 2 ], *bme680_p_file[ 2 ], *bme680_RH_file[ 2 ], *bme680_R_file[ 2 ];
+  File *bme680_T_file[ 2 ], *bme680_TF_file[ 2 ], *bme680_p_file[ 2 ], *bme680_RH_file[ 2 ], *bme680_R_file[ 2 ];
   bme680_T_file[ 0 ]  = new File(datadir, "bme680_x76_T");
   bme680_T_file[ 1 ]  = new File(datadir, "bme680_x77_T");
+  bme680_TF_file[ 0 ]  = new File(datadir, "bme680_x76_TF");
+  bme680_TF_file[ 1 ]  = new File(datadir, "bme680_x77_TF");
   bme680_p_file[ 0 ]  = new File(datadir, "bme680_x76_p");
   bme680_p_file[ 1 ]  = new File(datadir, "bme680_x77_p");
   bme680_RH_file[ 0 ] = new File(datadir, "bme680_x76_RH");
@@ -561,26 +563,28 @@ int main()
     }
   }    
 
-  if( lis2mdl && lis2mdl->WhoAmI() )
+  if( lis2mdl )
   {
-    fprintf(stderr, SD_INFO "Enable temperature compensation\n");
-    lis2mdl->TempCompEnable();
-    fprintf(stderr, SD_INFO "Enable block data\n");
-    lis2mdl->BlockDataEnable();
+    if( lis2mdl->WhoAmI() )
+    {
+      fprintf(stderr, SD_INFO "Enable temperature compensation\n");
+      lis2mdl->TempCompEnable();
+      fprintf(stderr, SD_INFO "Enable block data\n");
+      lis2mdl->BlockDataEnable();
 
-    fprintf(stderr, SD_INFO "%s %s %d\n", lis2mdl->GetName().c_str(), lis2mdl->GetDevice().c_str(), lis2mdl->GetAddress() );
-    fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis2mdl_db->GetTable().c_str() );
-    fprintf(stderr, SD_INFO "Operation mode %d\n", lis2mdl->GetOpMode());
-    fprintf(stderr, SD_INFO "Data rate %d\n", lis2mdl->GetDataRate());
-    fprintf(stderr, SD_INFO "X offset register %d\n", lis2mdl->GetXOffset());
-    fprintf(stderr, SD_INFO "Y offset register %d\n", lis2mdl->GetYOffset());
-    fprintf(stderr, SD_INFO "Z offset register %d\n", lis2mdl->GetZOffset());
-
-  }
-  else
-  {
-    fprintf(stderr, SD_ERR "LIS2MDL not found from i2c bus address 0x1E, drop from reading loop\n");
-    lis2mdl = nullptr;
+      fprintf(stderr, SD_INFO "%s %s %d\n", lis2mdl->GetName().c_str(), lis2mdl->GetDevice().c_str(), lis2mdl->GetAddress() );
+      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis2mdl_db->GetTable().c_str() );
+      fprintf(stderr, SD_INFO "Operation mode %d\n", lis2mdl->GetOpMode());
+      fprintf(stderr, SD_INFO "Data rate %d\n", lis2mdl->GetDataRate());
+      fprintf(stderr, SD_INFO "X offset register %d\n", lis2mdl->GetXOffset());
+      fprintf(stderr, SD_INFO "Y offset register %d\n", lis2mdl->GetYOffset());
+      fprintf(stderr, SD_INFO "Z offset register %d\n", lis2mdl->GetZOffset());
+    }
+    else
+    {
+      fprintf(stderr, SD_ERR "LIS2MDL not found from i2c bus address 0x1E, drop from reading loop\n");
+      lis2mdl = nullptr;
+    }
   }
 
   for( int i = 0; i < 2; i++)
@@ -618,7 +622,7 @@ int main()
     }
   }
 
-  double T = 0, RH = 0, p = 0, R = 0, Ev = 0;
+  double T = 0, TF = 0, RH = 0, p = 0, R = 0, Ev = 0;
   double Bx = 0, By = 0, Bz = 0;
   double gx = 0, gy = 0, gz = 0;
   double adc1 = 0, adc2 = 0, adc3 = 0;
@@ -706,7 +710,8 @@ int main()
         bme680[ i ]->GetTPHG();
 
         T = bme680[ i ]->GetTemperature();
-        RH = bme680[ i ]->GetHumidity();
+        TF = 9.0 * T / 5.0 + 32.0;
+	RH = bme680[ i ]->GetHumidity();
         p = bme680[ i ]->GetPressure();
         R = bme680[ i ]->GetResistance();
 
@@ -716,7 +721,8 @@ int main()
         fprintf(stderr, SD_INFO "%s = %f C, %f %%, %f Pa, %f ohm, %c, %c\n", bme680[ i ]->GetName().c_str(), T, RH, p, R, Valid, Stable);
 
         bme680_T_file[ i ]->Write( T );
-        bme680_RH_file[ i ]->Write( RH );
+        bme680_TF_file[ i ]->Write( TF );
+	bme680_RH_file[ i ]->Write( RH );
         bme680_p_file[ i ]->Write( p );
         bme680_R_file[ i ]->Write( R );
 
