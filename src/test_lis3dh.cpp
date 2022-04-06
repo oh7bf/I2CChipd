@@ -156,15 +156,21 @@ int main(int argc, char **argv)
 
 //    cout << "-- enable FIFO\n";
 //    chip->FifoEnable();
-//
+
 //    cout << "-- set FIFO mode 2\n";
 //    chip->SetFifoMode( 2 );
-//
+
 //    cout << "-- read FIFO mode\n";
 //    cout << (int)chip->GetFifoMode() << "\n";
 
 //    cout << "-- sleep 100 ms\n";
 //    usleep( 100000 ); // sleep 100 ms
+
+//    uint8_t samples = chip->ReadFifo();
+
+//    int16_t *fifoX = chip->GetFifoX();
+//    cout << "-- FIFO samples " << samples << "\n";
+//    cout << fifoX[ 0 ] << "\n";
 
 //    cout << "-- FS = " << chip->GetFS() << "\n";
 
