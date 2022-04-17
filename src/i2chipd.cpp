@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Wed 06 Apr 2022 08:26:50 AM CDT
+ * Edit: Sun Apr 17 13:37:18 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -57,7 +57,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220406; // program version
+  const int version = 20220417; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -281,127 +281,275 @@ int main()
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
 
 // DIM services
-  double bme680x76_T = 0, bme680x76_RH = 0, bme680x76_p = 0, bme680x76_R = 0;
-  DimService *Bme680x76T, *Bme680x76RH, *Bme680x76p, *Bme680x76R;
 
-  double bme680x77_T = 0, bme680x77_RH = 0, bme680x77_p = 0, bme680x77_R = 0;
-  DimService *Bme680x77T, *Bme680x77RH, *Bme680x77p, *Bme680x77R;
+  struct bme680d
+  {
+    double T = 0;
+    double RH = 0;
+    double p = 0;
+    double R = 0;
+  };
 
-  double bh1750fvix23_Ev = 0, bh1750fvix5C_Ev = 0;
-  DimService *bh1750fvix23Ev, *bh1750fvix5CEv;
+  bme680d bme680x76data, bme680x77data;
+  DimService *bme680x76Dim, *bme680x77Dim;
 
-  double lis2mdlx1E_Bx = 0, lis2mdlx1E_By = 0, lis2mdlx1E_Bz = 0, lis2mdlx1E_T = 0;
-  DimService *lis2mdlx1EBx, *lis2mdlx1EBy, *lis2mdlx1EBz, *lis2mdlx1ET;
+  struct bmp280d
+  {
+    double T = 0;
+    double p = 0;
+  };
 
-  double lis3dhx18_gx = 0, lis3dhx18_gy = 0, lis3dhx18_gz = 0, lis3dhx18_adc1 = 0, lis3dhx18_adc2 = 0, lis3dhx18_adc3 = 0;
-	  
-  DimService *lis3dhx18gx, *lis3dhx18gy, *lis3dhx18gz, *lis3dhx18adc1, *lis3dhx18adc2, *lis3dhx18adc3;
+  bmp280d bmp280x76data, bmp280x77data;
+  DimService *bmp280x76Dim, *bmp280x77Dim;
 
-  double lis3dhx19_gx = 0, lis3dhx19_gy = 0, lis3dhx19_gz = 0, lis3dhx19_adc1 = 0, lis3dhx19_adc2 = 0, lis3dhx19_adc3 = 0;
-	  
-  DimService *lis3dhx19gx, *lis3dhx19gy, *lis3dhx19gz, *lis3dhx19adc1, *lis3dhx19adc2, *lis3dhx19adc3;
+  struct bh1750fvid
+  {
+    double Ev = 0;
+  };
 
-  fprintf(stderr, SD_DEBUG "Create DIM services bme680x76_*\n");
+  bh1750fvid bh1750fvix23data, bh1750fvix5Cdata;
+  DimService *bh1750fvix23Dim, *bh1750fvix5CDim;
+
+  struct htu21dd
+  {
+    double T = 0;
+    double RH = 0;
+  };
+
+  htu21dd htu21data;
+  DimService *htu21Dim;
+
+  struct lis2mdld
+  {
+    double Bx = 0;
+    double By = 0;
+    double Bz = 0;
+    double T = 0;
+  };
+
+  lis2mdld lis2mdlx1Edata;
+  DimService *lis2mdlx1EDim;
+
+  struct lis3mdld
+  {
+    double Bx = 0;
+    double By = 0;
+    double Bz = 0;
+    double T = 0;
+  };
+
+  lis3mdld lis3mdlx1Cdata, lis3mdlx1Edata;
+  DimService *lis3mdlx1CDim, *lis3mdlx1EDim;
+
+  struct lis3dhd
+  {
+    double gx = 0;
+    double gy = 0;
+    double gz = 0;
+    double adc1 = 0;
+    double adc2 = 0;
+    double adc3 = 0;
+  };
+
+  lis3dhd lis3dhx18data, lis3dhx19data;
+  DimService *lis3dhx18Dim, *lis3dhx19Dim;
+
+  struct max31865d
+  {
+    double T = 0;
+    double R = 0;
+    int F = 0;
+  };
+
+  max31865d max31865d00data, max31865d01data;
+  DimService *max31865d00Dim, *max31865d01Dim;
+
+  struct tmp102d
+  {
+    double T = 0;
+  };
+
+  tmp102d tmp102x48data, tmp102x49data, tmp102x4Adata, tmp102x4Bdata;
+  DimService *tmp102x48Dim, *tmp102x49Dim, *tmp102x4ADim, *tmp102x4BDim;
+
+  if( bmp280x76 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service bmp280x76\n");
+    bmp280x76Dim = new DimService( (dimserver + "/bmp280x76").c_str(), "D:2", &bmp280x76data, sizeof( bmp280x76data ) );
+  }
+  else
+  {
+    bmp280x76Dim = nullptr; 
+  }
+
+  if( bmp280x77 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service bmp280x77\n");
+    bmp280x77Dim = new DimService( (dimserver + "/bmp280x77").c_str(), "D:2", &bmp280x77data, sizeof( bmp280x77data ) );
+  }
+  else
+  {
+    bmp280x77Dim = nullptr; 
+  }
+
   if( bme680x76 )
   {
-    Bme680x76T = new DimService( (dimserver + "/bme680x76_T").c_str(), bme680x76_T);
-    Bme680x76RH = new DimService( (dimserver + "/bme680x76_RH").c_str(), bme680x76_RH);
-    Bme680x76p = new DimService( (dimserver + "/bme680x76_p").c_str(), bme680x76_p);
-    Bme680x76R = new DimService( (dimserver + "/bme680x76_R").c_str(), bme680x76_R);
+    fprintf(stderr, SD_DEBUG "Create DIM service bme680x76\n");
+    bme680x76Dim = new DimService( (dimserver + "/bme680x76").c_str(), "D:4", &bme680x76data, sizeof( bme680x76data ) );
   }
   else
   {
-    Bme680x76T = nullptr; 
-    Bme680x76RH = nullptr;
-    Bme680x76p = nullptr;
-    Bme680x76R = nullptr;
+    bme680x76Dim = nullptr; 
   }
 
-  fprintf(stderr, SD_DEBUG "Create DIM services bme680x77_*\n");
   if( bme680x77 )
   {
-    Bme680x77T = new DimService( (dimserver + "/bme680x77_T").c_str(), bme680x77_T);
-    Bme680x77RH = new DimService( (dimserver + "/bme680x77_RH").c_str(), bme680x77_RH);
-    Bme680x77p = new DimService( (dimserver + "/bme680x77_p").c_str(), bme680x77_p);
-    Bme680x77R = new DimService( (dimserver + "/bme680x77_R").c_str(), bme680x77_R);
+    fprintf(stderr, SD_DEBUG "Create DIM service bme680x77\n");
+    bme680x77Dim = new DimService( (dimserver + "/bme680x77").c_str(), "D:4", &bme680x77data, sizeof( bme680x77data ) );
   }
   else
   {
-    Bme680x77T = nullptr; 
-    Bme680x77RH = nullptr;
-    Bme680x77p = nullptr;
-    Bme680x77R = nullptr;
+    bme680x77Dim = nullptr; 
   }
 
   if( bh1750fvix23 )
   {
-    bh1750fvix23Ev = new DimService( (dimserver + "/bh1750fvix23_Ev").c_str(), bh1750fvix23_Ev);
+    fprintf(stderr, SD_DEBUG "Create DIM service bh1750fvix23\n");
+    bh1750fvix23Dim = new DimService( (dimserver + "/bh1750fvix23").c_str(), "D:1", &bh1750fvix23data, sizeof( bh1750fvix23data ) );
   }
   else
   {
-    bh1750fvix23Ev = nullptr;
+    bh1750fvix23Dim = nullptr;
   }
 
   if( bh1750fvix5C )
   {
-    bh1750fvix5CEv = new DimService( (dimserver + "/bh1750fvix5C_Ev").c_str(), bh1750fvix5C_Ev);
+    fprintf(stderr, SD_DEBUG "Create DIM service bh1750fvix5C\n");
+    bh1750fvix5CDim = new DimService( (dimserver + "/bh1750fvix5C").c_str(), "D:1", &bh1750fvix5Cdata, sizeof( bh1750fvix5Cdata ) );
   }
   else
   {
-    bh1750fvix5CEv = nullptr;
+    bh1750fvix5CDim = nullptr;
+  }
+
+  if( htu21dx )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service htu21dx\n");
+    htu21Dim = new DimService( (dimserver + "/htu21dx").c_str(), "D:2", &htu21data, sizeof( htu21data ) );
+  }
+  else
+  {
+    htu21Dim = nullptr;
   }
 
   if( lis2mdlx1E )
   {
-    lis2mdlx1EBx = new DimService( (dimserver + "/lis2mdlx1E_Bx").c_str(), lis2mdlx1E_Bx);
-    lis2mdlx1EBy = new DimService( (dimserver + "/lis2mdlx1E_By").c_str(), lis2mdlx1E_By);
-    lis2mdlx1EBz = new DimService( (dimserver + "/lis2mdlx1E_Bz").c_str(), lis2mdlx1E_Bz);
-    lis2mdlx1ET = new DimService( (dimserver + "/lis2mdlx1E_T").c_str(), lis2mdlx1E_T);
+    fprintf(stderr, SD_DEBUG "Create DIM service lis2mdlx1E\n");
+    lis2mdlx1EDim = new DimService( (dimserver + "/lis2mdlx1E").c_str(), "D:4", &lis2mdlx1Edata, sizeof( lis2mdlx1Edata ) );
   }
   else
   {
-    lis2mdlx1EBx = nullptr;
-    lis2mdlx1EBy = nullptr;
-    lis2mdlx1EBz = nullptr;
-    lis2mdlx1ET = nullptr;
+    lis2mdlx1EDim = nullptr;
+  }
+
+  if( lis3mdlx1C )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service lis3mdlx1C\n");
+    lis3mdlx1CDim = new DimService( (dimserver + "/lis3mdlx1C").c_str(), "D:4", &lis3mdlx1Cdata, sizeof( lis3mdlx1Cdata ) );
+  }
+  else
+  {
+    lis3mdlx1CDim = nullptr;
+  }
+
+  if( lis3mdlx1E )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service lis3mdlx1E\n");
+    lis3mdlx1EDim = new DimService( (dimserver + "/lis3mdlx1E").c_str(), "D:4", &lis3mdlx1Edata, sizeof( lis3mdlx1Edata ) );
+  }
+  else
+  {
+    lis3mdlx1EDim = nullptr;
   }
 
   if( lis3dhx18 )
   {
-    lis3dhx18gx = new DimService( (dimserver + "/lis3dhx18_gx").c_str(), lis3dhx18_gx);
-    lis3dhx18gy = new DimService( (dimserver + "/lis3dhx18_gy").c_str(), lis3dhx18_gy);
-    lis3dhx18gz = new DimService( (dimserver + "/lis3dhx18_gz").c_str(), lis3dhx18_gz);
-    lis3dhx18adc1 = new DimService( (dimserver + "/lis3dhx18_adc1").c_str(), lis3dhx18_adc1);
-    lis3dhx18adc2 = new DimService( (dimserver + "/lis3dhx18_adc2").c_str(), lis3dhx18_adc2);
-    lis3dhx18adc3 = new DimService( (dimserver + "/lis3dhx18_adc3").c_str(), lis3dhx18_adc3);
+    fprintf(stderr, SD_DEBUG "Create DIM service lis3dhx18\n");
+    lis3dhx18Dim = new DimService( (dimserver + "/lis3dhx18").c_str(), "D:6", &lis3dhx18data, sizeof( lis3dhx18data ) );
   }
   else
   {
-    lis3dhx18gx = nullptr;
-    lis3dhx18gy = nullptr;
-    lis3dhx18gz = nullptr;
-    lis3dhx18adc1 = nullptr;
-    lis3dhx18adc2 = nullptr;
-    lis3dhx18adc3 = nullptr;
+    lis3dhx18Dim = nullptr;
   }
 
   if( lis3dhx19 )
   {
-    lis3dhx19gx = new DimService( (dimserver + "/lis3dhx19_gx").c_str(), lis3dhx19_gx);
-    lis3dhx19gy = new DimService( (dimserver + "/lis3dhx19_gy").c_str(), lis3dhx19_gy);
-    lis3dhx19gz = new DimService( (dimserver + "/lis3dhx19_gz").c_str(), lis3dhx19_gz);
-    lis3dhx19adc1 = new DimService( (dimserver + "/lis3dhx19_adc1").c_str(), lis3dhx19_adc1);
-    lis3dhx19adc2 = new DimService( (dimserver + "/lis3dhx19_adc2").c_str(), lis3dhx19_adc2);
-    lis3dhx19adc3 = new DimService( (dimserver + "/lis3dhx19_adc3").c_str(), lis3dhx19_adc3);
+    fprintf(stderr, SD_DEBUG "Create DIM service lis3dhx19\n");
+    lis3dhx19Dim = new DimService( (dimserver + "/lis3dhx19").c_str(), "D:6", &lis3dhx19data, sizeof( lis3dhx19data ) );
   }
   else
   {
-    lis3dhx19gx = nullptr;
-    lis3dhx19gy = nullptr;
-    lis3dhx19gz = nullptr;
-    lis3dhx19adc1 = nullptr;
-    lis3dhx19adc2 = nullptr;
-    lis3dhx19adc3 = nullptr;
+    lis3dhx19Dim = nullptr;
+  }
+
+  if( max31865_00 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service max31865d00\n");
+    max31865d00Dim = new DimService( (dimserver + "/max31865d00").c_str(), "D:2;I:1", &max31865d00data, sizeof( max31865d00data ) );
+  }
+  else
+  {
+    max31865d00Dim = nullptr;
+  }
+
+  if( max31865_01 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service max31865d01\n");
+    max31865d01Dim = new DimService( (dimserver + "/max31865d01").c_str(), "D:2;I:1", &max31865d01data, sizeof( max31865d01data ) );
+  }
+  else
+  {
+    max31865d01Dim = nullptr;
+  }
+
+  if( tmp102x48 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service tmp102x48\n");
+    tmp102x48Dim = new DimService( (dimserver + "/tmp102x48").c_str(), "D:1", &tmp102x48data, sizeof( tmp102x48data ) );
+  }
+  else
+  {
+    tmp102x48Dim = nullptr;
+  }
+
+  if( tmp102x49 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service tmp102x49\n");
+    tmp102x49Dim = new DimService( (dimserver + "/tmp102x49").c_str(), "D:1", &tmp102x49data, sizeof( tmp102x49data ) );
+  }
+  else
+  {
+    tmp102x49Dim = nullptr;
+  }
+
+  if( tmp102x4A )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service tmp102x4A\n");
+    tmp102x4ADim = new DimService( (dimserver + "/tmp102x4A").c_str(), "D:1", &tmp102x4Adata, sizeof( tmp102x4Adata ) );
+  }
+  else
+  {
+    tmp102x4ADim = nullptr;
+  }
+
+  if( tmp102x4B )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service tmp102x4B\n");
+    tmp102x4BDim = new DimService( (dimserver + "/tmp102x4B").c_str(), "D:1", &tmp102x4Bdata, sizeof( tmp102x4Bdata ) );
+  }
+  else
+  {
+    tmp102x4BDim = nullptr;
   }
 
   // start DIM server
@@ -645,6 +793,34 @@ int main()
         dbl_array[ 0 ] = T;
         tmp102_db->Insert(tmp102[ i ]->GetName(), 1, dbl_array, sqlite_err );
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+
+        if( dimruns )
+        {
+          if( i == 0 )
+          {
+            fprintf(stderr, SD_DEBUG "Update DIM service tmp102x48\n");
+            tmp102x48data.T = T;
+            tmp102x48Dim->updateService();
+          }
+          else if( i == 1 )
+          {
+            fprintf(stderr, SD_DEBUG "Update DIM service tmp102x49\n");
+            tmp102x49data.T = T;
+            tmp102x49Dim->updateService();
+          }
+          else if( i == 2 )
+          {
+            fprintf(stderr, SD_DEBUG "Update DIM service tmp102x4A\n");
+            tmp102x4Adata.T = T;
+            tmp102x4ADim->updateService();
+          }
+          else if( i == 3 )
+          {
+            fprintf(stderr, SD_DEBUG "Update DIM service tmp102x4B\n");
+            tmp102x4Bdata.T = T;
+            tmp102x4BDim->updateService();
+          }
+        }
       }
     }
 
@@ -672,7 +848,14 @@ int main()
 
           htu21d_db->Insert(htu21d->GetName(), 2, dbl_array, sqlite_err );
           if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
-        }
+
+          if( dimruns )
+          {
+            htu21data.T = T;
+            htu21data.RH = RH;
+            htu21Dim->updateService();
+          }
+	}
       }
     }
 
@@ -698,6 +881,21 @@ int main()
         bmp280_db->Insert(bmp280[ i ]->GetName(), 2, dbl_array, sqlite_err);
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
+        if( dimruns )
+        {
+          if( i == 0 )
+          {
+            bmp280x76data.T = T;
+            bmp280x76data.p = p;
+            bmp280x76Dim->updateService();
+          }
+          else
+	  {
+            bmp280x77data.T = T;
+            bmp280x77data.p = p;
+            bmp280x77Dim->updateService();
+          }
+        }
       }
     }
 
@@ -738,27 +936,21 @@ int main()
 
 	if( i == 0 && dimruns )
         {
-          fprintf(stderr, SD_DEBUG "Update DIM services bme680x76_*\n");
-          bme680x76_T = T;
-          Bme680x76T->updateService();
-          bme680x76_RH = RH;
-          Bme680x76RH->updateService();
-          bme680x76_p = p;
-          Bme680x76p->updateService();
-          bme680x76_R = R;
-          Bme680x76R->updateService();
+          fprintf(stderr, SD_DEBUG "Update DIM service bme680x76\n");
+          bme680x76data.T = T;
+          bme680x76data.RH = RH;
+          bme680x76data.p = p;
+          bme680x76data.R = R;
+          bme680x76Dim->updateService();
         }
 	else if( dimruns )
         {
-          fprintf(stderr, SD_DEBUG "Update DIM services bme680x77_*\n");
-          bme680x77_T = T;
-          Bme680x77T->updateService();
-          bme680x77_RH = RH;
-          Bme680x77RH->updateService();
-          bme680x77_p = p;
-          Bme680x77p->updateService();
-          bme680x77_R = R;
-          Bme680x77R->updateService();
+          fprintf(stderr, SD_DEBUG "Update DIM service bme680x77\n");
+          bme680x77data.T = T;
+          bme680x77data.RH = RH;
+          bme680x77data.p = p;
+          bme680x77data.R = R;
+          bme680x77Dim->updateService();
         }
 
         Tamb = (int8_t)T;
@@ -790,13 +982,13 @@ int main()
 
           if( i == 0 && dimruns )
           {
-            bh1750fvix23_Ev = Ev;
-            bh1750fvix23Ev->updateService();
+            bh1750fvix23data.Ev = Ev;
+            bh1750fvix23Dim->updateService();
 	  }
 	  else if( dimruns )
           {
-            bh1750fvix5C_Ev = Ev;
-            bh1750fvix5CEv->updateService();
+            bh1750fvix5Cdata.Ev = Ev;
+            bh1750fvix5CDim->updateService();
           }
 	}
       }
@@ -861,35 +1053,23 @@ int main()
 
              if( i == 0 && dimruns )
              {
-               lis3dhx18_gx = gx;
-               lis3dhx18gx->updateService();
-               lis3dhx18_gy = gy;
-               lis3dhx18gy->updateService();
-               lis3dhx18_gz = gz;
-               lis3dhx18gz->updateService();
-
-               lis3dhx18_adc1 = adc1;
-               lis3dhx18adc1->updateService();
-               lis3dhx18_adc2 = adc2;
-               lis3dhx18adc2->updateService();
-               lis3dhx18_adc3 = adc3;
-               lis3dhx18adc3->updateService();
+               lis3dhx18data.gx = gx;
+               lis3dhx18data.gy = gy;
+               lis3dhx18data.gz = gz;
+               lis3dhx18data.adc1 = adc1;
+               lis3dhx18data.adc2 = adc2;
+               lis3dhx18data.adc3 = adc3;
+               lis3dhx18Dim->updateService();
              }
              else if( dimruns )
 	     {
-               lis3dhx19_gx = gx;
-               lis3dhx19gx->updateService();
-               lis3dhx19_gy = gy;
-               lis3dhx19gy->updateService();
-               lis3dhx19_gz = gz;
-               lis3dhx19gz->updateService();
-
-	       lis3dhx19_adc1 = adc1;
-               lis3dhx19adc1->updateService();
-               lis3dhx19_adc2 = adc2;
-               lis3dhx19adc2->updateService();
-               lis3dhx19_adc3 = adc3;
-               lis3dhx19adc3->updateService();
+               lis3dhx19data.gx = gx;
+               lis3dhx19data.gy = gy;
+               lis3dhx19data.gz = gz;
+	       lis3dhx19data.adc1 = adc1;
+               lis3dhx19data.adc2 = adc2;
+               lis3dhx19data.adc3 = adc3;
+               lis3dhx19Dim->updateService();
 	     }
 	  }
            else
@@ -951,16 +1131,13 @@ int main()
 
             if( dimruns )
 	    {
-              lis2mdlx1E_Bx = Bx;
-              lis2mdlx1EBx->updateService();
-              lis2mdlx1E_By = By;
-              lis2mdlx1EBy->updateService();
-	      lis2mdlx1E_Bz = Bz;
-              lis2mdlx1EBz->updateService();
-	      lis2mdlx1E_T = T;
-              lis2mdlx1ET->updateService();
+              lis2mdlx1Edata.Bx = Bx;
+              lis2mdlx1Edata.By = By;
+	      lis2mdlx1Edata.Bz = Bz;
+	      lis2mdlx1Edata.T = T;
+              lis2mdlx1EDim->updateService();
 	    }
-          }
+	  }
           else
           {
             fprintf(stderr, SD_NOTICE "%s error reading magnetic field %d\n", lis2mdl->GetName().c_str(), lis2mdl->GetError() );
@@ -1017,6 +1194,23 @@ int main()
 
               lis3mdl_db->Insert(lis3mdl[ i ]->GetName(), 4, dbl_array, sqlite_err);
               if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+
+              if( dimruns && lis3mdlx1C )
+  	      {
+                lis3mdlx1Cdata.Bx = Bx;
+                lis3mdlx1Cdata.By = By;
+                lis3mdlx1Cdata.Bz = Bz;
+	        lis3mdlx1Cdata.T = T;
+                lis3mdlx1CDim->updateService();
+              }
+              else if( dimruns )
+	      {
+                lis3mdlx1Edata.Bx = Bx;
+                lis3mdlx1Edata.By = By;
+                lis3mdlx1Edata.Bz = Bz;
+	        lis3mdlx1Edata.T = T;
+                lis3mdlx1EDim->updateService();
+              }
 	    }
             else
             {
@@ -1065,12 +1259,29 @@ int main()
 
         max31865_db->Insert(max31865[ i ]->GetName(), 2, dbl_array, 1, int_array, sqlite_err);
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+
+        if( dimruns )
+        {
+          if( i == 0 )
+          {
+            max31865d00data.T = T;
+            max31865d00data.R = R;
+            max31865d00data.F = F;
+            max31865d00Dim->updateService();
+	  }
+          else
+	  {
+            max31865d01data.T = T;
+            max31865d01data.R = R;
+            max31865d01data.F = F;
+            max31865d01Dim->updateService();
+	  }
+	}
       }
     }
 
     sleep( readinterval );
   }
-
 
   for(int i = 0; i < 4; i++) if( tmp102[ i ] ) delete tmp102[ i ];
   for(int i = 0; i < 4; i++) delete tmp102_file[ i ];
