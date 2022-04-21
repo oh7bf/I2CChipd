@@ -2,18 +2,23 @@
 # 
 # Makefile for compiling 'i2chipd' on Raspberry Pi. 
 #
+# Choose between 'i2chipd' or 'i2chipd_dim' below and edit 'i2chipd.hpp'
+# accordingly.
+#
 # Fri Jul  3 11:50:56 CDT 2020
-# Edit: Sat 26 Mar 2022 01:07:33 PM CET
+# Edit: Wed Apr 20 20:33:44 CDT 2022
 #
 # Jaakko Koivuniemi
 
+I2CHIPD       = i2chipd
+#I2CHIPD       = i2chipd_dim
+#INCDIM        = /home/me/dim_v20r32/dim
+#LIBDIM        = /home/me/dim_v20r32/linux
+
 CXX           = g++
 CXXFLAGS      = -g -O2 -Wall -Wextra -std=c++11 
-INCDIM        = /home/me/dim_v20r32/dim
-LIBDIM        = /home/me/dim_v20r32/linux
 LD            = g++
 LDFLAGS       = -O2
-
 
 MODULES       = I2Chip.o 
 MODULES      += Tmp102.o
@@ -34,10 +39,13 @@ MODULES      += i2chipd.o
 %.o : %.cpp
 	$(CXX) -I$(INCDIM) $(CXXFLAGS) -c $<
 
-all: i2chipd test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi test_lis3mdl test_lis3dh test_lis2mdl
+all: $(I2CHIPD) test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi test_lis3mdl test_lis3dh test_lis2mdl
 
 i2chipd: $(MODULES) 
-	$(LD) $(LDFLAGS) -L$(LIBDIM) $^ -ldim -lsqlite3 -o $@
+	$(LD) $(LDFLAGS) $^ -lsqlite3 -o $@
+
+i2chipd_dim: $(MODULES) 
+	$(LD) $(LDFLAGS) -L$(LIBDIM) $^ -ldim -lsqlite3 -o i2chipd
 
 test_bmp280: I2Chip.o Bmp280.o test_bmp280.o
 	$(LD) $(LDFLAGS) $^ -o $@

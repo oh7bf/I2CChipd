@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:18:46 CDT 2020
- * Edit: Sat 26 Mar 2022 08:40:21 PM CET
+ * Edit: Wed Apr 20 20:35:46 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -28,6 +28,8 @@
 
 #ifndef _I2CHIPD_HPP
 #define _I2CHIPD_HPP
+
+//#define USE_DIM_LIBS
 
 #include "Htu21d.hpp"
 #include "Tmp102.hpp"

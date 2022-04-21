@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Sun Apr 17 13:37:18 CDT 2022
+ * Edit: Wed Apr 20 19:28:44 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -32,7 +32,10 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+
+#ifdef USE_DIM_LIBS
 #include <dis.hxx>
+#endif
 
 using namespace std;
 
@@ -57,7 +60,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220417; // program version
+  const int version = 20220420; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -140,7 +143,8 @@ int main()
             fprintf(stderr, SD_INFO "read interval %d s\n", readinterval );
           }
 
-          pos = line.find("DIMSERVER");
+#ifdef USE_DIM_LIBS
+	  pos = line.find("DIMSERVER");
           if( pos != std::string::npos ) 
           {
             dimserver = line.substr(pos+10, line.length() - pos - 10 ).c_str();
@@ -153,6 +157,8 @@ int main()
             dimdns = line.substr(pos+7, line.length() - pos - 7 ).c_str();
             fprintf(stderr, SD_INFO "DIM name server %s\n", dimdns.c_str() );
           }
+#endif
+
 	}
       }
     } 
@@ -281,7 +287,7 @@ int main()
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
 
 // DIM services
-
+#ifdef USE_DIM_LIBS
   struct bme680d
   {
     double T = 0;
@@ -560,6 +566,7 @@ int main()
     DimServer::start( dimserver.c_str() );
     dimruns = true;
   }
+#endif
 
   // chip initializations
   for( int i = 0; i < 4; i++)
@@ -794,7 +801,8 @@ int main()
         tmp102_db->Insert(tmp102[ i ]->GetName(), 1, dbl_array, sqlite_err );
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
-        if( dimruns )
+#ifdef USE_DIM_LIBS
+	if( dimruns )
         {
           if( i == 0 )
           {
@@ -820,7 +828,8 @@ int main()
             tmp102x4Bdata.T = T;
             tmp102x4BDim->updateService();
           }
-        }
+	}
+#endif
       }
     }
 
@@ -849,12 +858,14 @@ int main()
           htu21d_db->Insert(htu21d->GetName(), 2, dbl_array, sqlite_err );
           if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
+#ifdef USE_DIM_LIBS
           if( dimruns )
           {
             htu21data.T = T;
             htu21data.RH = RH;
             htu21Dim->updateService();
           }
+#endif
 	}
       }
     }
@@ -881,7 +892,8 @@ int main()
         bmp280_db->Insert(bmp280[ i ]->GetName(), 2, dbl_array, sqlite_err);
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
-        if( dimruns )
+#ifdef USE_DIM_LIBS
+	if( dimruns )
         {
           if( i == 0 )
           {
@@ -896,6 +908,7 @@ int main()
             bmp280x77Dim->updateService();
           }
         }
+#endif
       }
     }
 
@@ -934,6 +947,7 @@ int main()
         bme680_db->Insert(bme680[ i ]->GetName(), 4, dbl_array, 2, int_array, sqlite_err);
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
+#ifdef USE_DIM_LIBS
 	if( i == 0 && dimruns )
         {
           fprintf(stderr, SD_DEBUG "Update DIM service bme680x76\n");
@@ -952,7 +966,7 @@ int main()
           bme680x77data.R = R;
           bme680x77Dim->updateService();
         }
-
+#endif
         Tamb = (int8_t)T;
 
         fprintf(stderr, SD_INFO "profile 0: 0x%02x pulse, ambient %d C, target %d C\n", bme680_GasWaitTime[ i ], Tamb, bme680_T0[ i ]);
@@ -980,7 +994,8 @@ int main()
           bh1750fvi_db->Insert(bh1750fvi[ i ]->GetName(), 1, dbl_array, sqlite_err);
           if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
-          if( i == 0 && dimruns )
+#ifdef USE_DIM_LIBS
+	  if( i == 0 && dimruns )
           {
             bh1750fvix23data.Ev = Ev;
             bh1750fvix23Dim->updateService();
@@ -990,6 +1005,7 @@ int main()
             bh1750fvix5Cdata.Ev = Ev;
             bh1750fvix5CDim->updateService();
           }
+#endif
 	}
       }
     }
@@ -1051,7 +1067,8 @@ int main()
              lis3dh_db->Insert(lis3dh[ i ]->GetName(), 6, dbl_array, sqlite_err);
              if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
-             if( i == 0 && dimruns )
+#ifdef USE_DIM_LIBS
+	     if( i == 0 && dimruns )
              {
                lis3dhx18data.gx = gx;
                lis3dhx18data.gy = gy;
@@ -1071,6 +1088,7 @@ int main()
                lis3dhx19data.adc3 = adc3;
                lis3dhx19Dim->updateService();
 	     }
+#endif
 	  }
            else
            {
@@ -1129,7 +1147,8 @@ int main()
 
             if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
-            if( dimruns )
+#ifdef USE_DIM_LIBS
+	    if( dimruns )
 	    {
               lis2mdlx1Edata.Bx = Bx;
               lis2mdlx1Edata.By = By;
@@ -1137,6 +1156,7 @@ int main()
 	      lis2mdlx1Edata.T = T;
               lis2mdlx1EDim->updateService();
 	    }
+#endif
 	  }
           else
           {
@@ -1195,7 +1215,8 @@ int main()
               lis3mdl_db->Insert(lis3mdl[ i ]->GetName(), 4, dbl_array, sqlite_err);
               if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
-              if( dimruns && lis3mdlx1C )
+#ifdef USE_DIM_LIBS
+	      if( dimruns && lis3mdlx1C )
   	      {
                 lis3mdlx1Cdata.Bx = Bx;
                 lis3mdlx1Cdata.By = By;
@@ -1211,6 +1232,7 @@ int main()
 	        lis3mdlx1Edata.T = T;
                 lis3mdlx1EDim->updateService();
               }
+#endif
 	    }
             else
             {
@@ -1260,7 +1282,8 @@ int main()
         max31865_db->Insert(max31865[ i ]->GetName(), 2, dbl_array, 1, int_array, sqlite_err);
         if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
-        if( dimruns )
+#ifdef USE_DIM_LIBS
+	if( dimruns )
         {
           if( i == 0 )
           {
@@ -1277,74 +1300,12 @@ int main()
             max31865d01Dim->updateService();
 	  }
 	}
+#endif
       }
     }
 
     sleep( readinterval );
   }
-
-  for(int i = 0; i < 4; i++) if( tmp102[ i ] ) delete tmp102[ i ];
-  for(int i = 0; i < 4; i++) delete tmp102_file[ i ];
-  delete tmp102_db;
-
-  if( htu21d ) delete htu21d;
-  delete htu21d_T_file;
-  delete htu21d_RH_file;
-  delete htu21d_db;
-
-  for(int i = 0; i < 2; i++) if( bmp280[ i ] ) delete bmp280[ i ];
-  for(int i = 0; i < 2; i++) 
-  {
-    delete bmp280_T_file[ i ];
-    delete bmp280_p_file[ i ];
-  }
-  delete bmp280_db;
-
-  for(int i = 0; i < 2; i++) if( bme680[ i ] ) delete bme680[ i ];
-  for(int i = 0; i < 2; i++)
-  {
-    delete bme680_T_file[ i ];
-    delete bme680_RH_file[ i ];
-    delete bme680_p_file[ i ];
-    delete bme680_R_file[ i ];
-  }
-  delete bme680_db;
-
-  for(int i = 0; i < 2; i++) if( bh1750fvi[ i ] ) delete bh1750fvi[ i ];
-  for(int i = 0; i < 2; i++) delete bh1750fvi_Ev_file[ i ];
-  delete bh1750fvi_db;
-
-  for(int i = 0; i < 2; i++) if( lis3dh[ i ] ) delete lis3dh[ i ];
-  for(int i = 0; i < 2; i++)
-  {
-    delete lis3dh_gx_file[ i ];
-    delete lis3dh_gy_file[ i ];
-    delete lis3dh_gz_file[ i ];
-    delete lis3dh_adc1_file[ i ];
-    delete lis3dh_adc2_file[ i ];
-    delete lis3dh_adc3_file[ i ];
-  }
-  delete lis3dh_db;
-
-  for(int i = 0; i < 2; i++) if( lis3mdl[ i ] ) delete lis3mdl[ i ];
-  for(int i = 0; i < 2; i++)
-  {
-    delete lis3mdl_Bx_file[ i ];
-    delete lis3mdl_By_file[ i ];
-    delete lis3mdl_Bz_file[ i ];
-    delete lis3mdl_T_file[ i ];
-  }
-  delete lis3mdl_db;
-
-  delete max31865_db;
-  for(int i = 0; i < 2; i++) if( max31865[ i ] ) delete max31865[ i ];
-  for(int i = 0; i < 2; i++)
-  {
-    delete max31865_T_file[ i ];
-    delete max31865_R_file[ i ];
-    delete max31865_F_file[ i ];
-  }
-  delete max31865_db;
 
   return 0;
 };
