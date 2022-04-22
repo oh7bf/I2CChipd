@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sat 26 Mar 2022 01:19:51 PM CET
- * Edit: 
+ * Edit: Fri Apr 22 18:41:01 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 //    chip->ContinuousMode();
     chip->SingleMode();
 
-    cout << "Bx[G]       By[G]        Bz[G]        latency[s]\n";
+    cout << "Bx[G]       By[G]        Bz[G]        T[C]        latency[s]\n";
     j = 0;
     overrun = true;
     while( j  < 10 )
@@ -202,12 +202,15 @@ int main(int argc, char **argv)
         }
 //        cout << chip->GetOutX() << "   ";
 //        cout << chip->GetOutY() << "   ";
-//        cout << chip->GetOutZ() << "\n";
+//        cout << chip->GetOutZ() << "   ";
+//    cout << chip->GetTemp() << "\n";
 
 	cout << chip->GetBx() << "   ";
         cout << chip->GetBy() << "   ";
         cout << chip->GetBz() << "           ";
-        cout << i*0.001;
+        cout << chip->GetT() << "     ";
+
+	cout << i*0.001;
         cout << "\n";
       }	    
 

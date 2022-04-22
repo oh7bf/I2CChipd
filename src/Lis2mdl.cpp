@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sat 26 Mar 2022 10:50:20 AM CET
- * Edit: 
+ * Edit: Fri Apr 22 17:20:05 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -431,7 +431,7 @@ void Lis2mdl::SetIntThreshold(uint16_t IntThreshold)
   I2Chip::I2cWriteRegisterUInt16(LIS2MDL_INT_THS_L_REG | LIS2MDL_MULTI_RW, byte_swapped, address, buffer, error);
 }
 
-/// Read chip OUTX_L_REG, OUTX_H_REG, OUTY_L_REG, OUTY_H_REG, OUTZ_L_REG and OUTZ_H_REG registers and return true if success.
+/// Read chip OUTX_L_REG, OUTX_H_REG, OUTY_L_REG, OUTY_H_REG, OUTZ_L_REG, OUTZ_H_REG, TEMP_OUT_L_REG and TEMP_OUT_H_REG registers and return true if success.
 bool Lis2mdl::ReadB()
 {
   bool success = true;
@@ -444,7 +444,7 @@ bool Lis2mdl::ReadB()
   }
   else
   { 
-    I2cReadBytes(6, address, buffer, error);
+    I2cReadBytes(8, address, buffer, error);
 
     if( error != 0 )
     {
@@ -455,10 +455,12 @@ bool Lis2mdl::ReadB()
       outX = (int16_t)( buffer[ 0 ] | ( buffer[ 1 ] << 8 ) );
       outY = (int16_t)( buffer[ 2 ] | ( buffer[ 3 ] << 8 ) );
       outZ = (int16_t)( buffer[ 4 ] | ( buffer[ 5 ] << 8 ) );
+      temp = (int16_t)( buffer[ 6 ] | ( buffer[ 7 ] << 8 ) );
       
       Bx = 100 * outX / Gain;
       By = 100 * outY / Gain;
       Bz = 100 * outZ / Gain;
+      T = temp / 8.0;
     }   
   }
 

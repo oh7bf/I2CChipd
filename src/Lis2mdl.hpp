@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri 25 Mar 2022 05:38:47 PM CET
- * Edit: 
+ * Edit: Fri Apr 22 17:19:40 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -74,10 +74,13 @@ class Lis2mdl : public I2Chip
     int16_t outX = 0; ///< last reading from OUTX_L_REG and OUTX_H_REG
     int16_t outY = 0; ///< last reading from OUTY_L_REG and OUTY_H_REG
     int16_t outZ = 0; ///< last reading from OUTZ_L_REG and OUTZ_H_REG
+    int16_t temp = 0; ///< last reading from TEMP_OUT_L_REG and TEMP_OUT_H_REG
+
     double Gain = 666.66;    ///< gain@16-bit [LSB/G]
     double Bx;    ///< Bx[uT] from last reading 
     double By;    ///< By[uT] from last reading 
     double Bz;    ///< Bz[uT] from last reading 
+    double T;     ///< T[C] from last reading.
 
    public:
     /// Construct Lis2mdl object with parameters using default address.
@@ -110,14 +113,20 @@ class Lis2mdl : public I2Chip
     /// Get magnetic field value Bz[G] from last reading. 
     double GetBz() { return Bz; }
 
+    /// Get temperature value T[C] from last reading. 
+    double GetT() { return T; }
+
     /// Get outX from last reading. 
-    uint16_t GetOutX() { return outX; }
+    int16_t GetOutX() { return outX; }
 
     /// Get outY from last reading. 
-    uint16_t GetOutY() { return outY; }
+    int16_t GetOutY() { return outY; }
 
     /// Get outZ from last reading. 
-    uint16_t GetOutZ() { return outZ; }
+    int16_t GetOutZ() { return outZ; }
+
+    /// Get temp from last reading. 
+    int16_t GetTemp() { return temp; }
 
     /// Set chip name tag.
     void SetName(std::string name) { this->name = name; }
