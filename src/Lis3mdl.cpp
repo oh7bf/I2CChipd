@@ -503,7 +503,7 @@ bool Lis3mdl::ReadB()
       Bx = 100 * outX / Gain;
       By = 100 * outY / Gain;
       Bz = 100 * outZ / Gain;
-      T = temp / 8.0 + 25.0;
+      T = temp / 256.0 + 25.0;
     }   
   }
 

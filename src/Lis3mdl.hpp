@@ -129,7 +129,7 @@ class Lis3mdl : public I2Chip
     int16_t GetOutZ() { return outZ; }
 
     /// Get temp from last reading.
-    int16_t GetTemp();
+    int16_t GetTemp() { return temp; }
 
     /// Set chip name tag.
     void SetName(std::string name) { this->name = name; }

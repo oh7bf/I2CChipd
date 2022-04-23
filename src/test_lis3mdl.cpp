@@ -154,20 +154,24 @@ int main(int argc, char **argv)
 //    cout << "-- set big endian mode\n";
 //    chip->BigEndian();
 
+    cout << "-- enable temperature sensor\n";
+    chip->TempEnable();
+
     chip->ReadB();
 
-    cout << "-- start single conversion mode\n";
-//    chip->ContinuousMode();
+//    cout << "-- start continuous conversion mode\n";
+    chip->ContinuousMode();
 //    chip->PowerDown();
-    chip->SingleConversionMode();
+//    cout << "-- start single conversion mode\n";
+//    chip->SingleConversionMode();
 
-    cout << "Bx[G]       By[G]        Bz[G]        latency[s]\n";
+    cout << "Bx[G]       By[G]        Bz[G]        T[C]      latency[s]\n";
     j = 0;
     overrun = true;
-    while( j  < 10 && overrun )
+    while( j  < 10 )
     { 
       i = 0;
-      while( !chip->NewDataXYZ() && i < 1000 )
+      while( !chip->NewDataXYZ() && i < 10000 )
       {
         // sleep 100 us
         usleep( 100 );
@@ -190,17 +194,19 @@ int main(int argc, char **argv)
         {
           overrun = false;
 	}
-        if( !chip->ReadB() )
+
+	if( !chip->ReadB() )
         {
           error = chip->GetError();
           cout << "-- error " << error << "\n";
           cout << "-- problem reading field, quit now\n";
           return -1;
         }
-//        cout << chip->GetOutX() << "   ";
-//        cout << chip->GetOutY() << "   ";
-//        cout << chip->GetOutZ() << "   ";
-//        cout << chip->GetTemp() << "\n";
+
+	cout << chip->GetOutX() << "   ";
+        cout << chip->GetOutY() << "   ";
+        cout << chip->GetOutZ() << "   ";
+        cout << chip->GetTemp() << "\n";
 
 	cout << chip->GetBx() << "   ";
         cout << chip->GetBy() << "   ";
@@ -209,8 +215,13 @@ int main(int argc, char **argv)
 	cout << i*0.001;
         cout << "\n";
       }	    
+
+      j++;
     }
-    j++;
+
+//    chip->PowerDown();
+//    usleep( 100000 );
+//    chip->SingleConversionMode();
   }
 
   chip->PowerDown();
