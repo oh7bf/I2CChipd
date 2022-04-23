@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Wed Apr 20 19:28:44 CDT 2022
+ * Edit: Fri 22 Apr 2022 08:42:11 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -60,7 +60,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220420; // program version
+  const int version = 20220422; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -753,6 +753,7 @@ int main()
       lis3mdl[ i ]->SetZOpMode( 3 );
       lis3mdl[ i ]->SetFullScale( 0 );
       lis3mdl[ i ]->FastReadEnable();
+      lis3mdl[ i ]->TempEnable();
 
       fprintf(stderr, SD_INFO "%s %s %d\n", lis3mdl[ i ]->GetName().c_str(), lis3mdl[ i ]->GetDevice().c_str(), lis3mdl[ i ]->GetAddress() );
       fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis3mdl_db->GetTable().c_str() );
@@ -760,6 +761,7 @@ int main()
       fprintf(stderr, SD_INFO "Z operation mode %d\n", lis3mdl[ i ]->GetZOpMode());
       fprintf(stderr, SD_INFO "Full scale %d\n", lis3mdl[ i ]->GetFullScale());
       fprintf(stderr, SD_INFO "Fast read enabled\n");
+      fprintf(stderr, SD_INFO "Enable temperature sensor\n");
     }
   }    
 
@@ -1129,7 +1131,7 @@ int main()
             Bx = lis2mdl->GetBx();
             By = lis2mdl->GetBy();
             Bz = lis2mdl->GetBz();
-            T = -99;
+            T = lis2mdl->GetT();
 
             fprintf(stderr, SD_INFO "%s Bx = %f uT, By = %f uT, Bz = %f uT , T = %f C\n", lis2mdl->GetName().c_str(), Bx, By, Bz, T);
 
@@ -1198,7 +1200,7 @@ int main()
               Bx = lis3mdl[ i ]->GetBx();
               By = lis3mdl[ i ]->GetBy();
               Bz = lis3mdl[ i ]->GetBz();
-              T = -99;
+              T = lis3mdl[ i ]->GetT();
 
               fprintf(stderr, SD_INFO "%s Bx = %f uT, By = %f uT, Bz = %f uT , T = %f C\n", lis3mdl[ i ]->GetName().c_str(), Bx, By, Bz, T);
 
