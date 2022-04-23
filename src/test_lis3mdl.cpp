@@ -199,12 +199,14 @@ int main(int argc, char **argv)
         }
 //        cout << chip->GetOutX() << "   ";
 //        cout << chip->GetOutY() << "   ";
-//        cout << chip->GetOutZ() << "\n";
+//        cout << chip->GetOutZ() << "   ";
+//        cout << chip->GetTemp() << "\n";
 
 	cout << chip->GetBx() << "   ";
         cout << chip->GetBy() << "   ";
-        cout << chip->GetBz() << "           ";
-        cout << i*0.001;
+        cout << chip->GetBz() << "   ";
+        cout << chip->GetT() << "    ";
+	cout << i*0.001;
         cout << "\n";
       }	    
     }

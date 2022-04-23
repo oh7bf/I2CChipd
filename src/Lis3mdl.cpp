@@ -2,7 +2,7 @@
  * 
  * Lis3mdl class member functions for configuration and reading with I2C. 
  *       
- * Copyright (C) 2021 Jaakko Koivuniemi.
+ * Copyright (C) 2021 - 2022 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Sep 10 16:30:57 CDT 2021
- * Edit: Mon Sep 13 19:05:44 CDT 2021
+ * Edit: Fri Apr 22 19:13:02 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -474,12 +474,12 @@ bool Lis3mdl::WhoAmI()
   return (reg == 0x3D);
 }
 
-/// Read chip OUT_X_L, OUT_X_H, OUT_Y_L, OUT_Y_H, OUT_Z_L and OUT_Z_H registers and return true if success.
+/// Read chip OUT_X_L, OUT_X_H, OUT_Y_L, OUT_Y_H, OUT_Z_L, OUT_Z_H, TEMP_OUT_L and TEMP_OUT_H registers and return true if success.
 bool Lis3mdl::ReadB()
 {
   bool success = true;
 
-  Lis3mdl::ReadBx();
+  I2Chip::I2cWriteUInt8(LIS3MDL_OUT_X_L | LIS3MDL_MULTI_RW, address, buffer, error);
 
   if( error != 0 )
   {
@@ -487,15 +487,23 @@ bool Lis3mdl::ReadB()
   }
   else
   { 
-    Lis3mdl::ReadBy();
-
+    I2cReadBytes(8, address, buffer, error);
+      
     if( error != 0 )
     {
       success = false;
     }
     else
     { 
-      Lis3mdl::ReadBz();
+      outX = (int16_t)( buffer[ 0 ] | ( buffer[ 1 ] << 8 ) );
+      outY = (int16_t)( buffer[ 2 ] | ( buffer[ 3 ] << 8 ) );
+      outZ = (int16_t)( buffer[ 4 ] | ( buffer[ 5 ] << 8 ) );
+      temp = (int16_t)( buffer[ 6 ] | ( buffer[ 7 ] << 8 ) );
+
+      Bx = 100 * outX / Gain;
+      By = 100 * outY / Gain;
+      Bz = 100 * outZ / Gain;
+      T = temp / 8.0 + 25.0;
     }   
   }
 
@@ -505,10 +513,9 @@ bool Lis3mdl::ReadB()
 /// Read chip OUT_X_L and OUT_X_H registers and return true if success.
 bool Lis3mdl::ReadBx()
 {
-  uint8_t reg = 0;
   bool success = true;
 
-  I2Chip::I2cWriteUInt8(LIS3MDL_OUT_X_H , address, buffer, error);
+  I2Chip::I2cWriteUInt8(LIS3MDL_OUT_X_L | LIS3MDL_MULTI_RW, address, buffer, error);
 
   if( error != 0 )
   {
@@ -516,7 +523,7 @@ bool Lis3mdl::ReadBx()
   }
   else
   {
-    outX = I2Chip::I2cReadUInt8(address, buffer, error);
+    I2cReadBytes(2, address, buffer, error);
 
     if( error != 0 )
     {
@@ -524,38 +531,8 @@ bool Lis3mdl::ReadBx()
     }
     else
     {
-      outX = outX << 8;
-
-      I2Chip::I2cWriteUInt8(LIS3MDL_OUT_X_L , address, buffer, error);
-
-      if( error != 0 )
-      {
-        success = false;
-      }
-      else
-      {
-        reg = I2Chip::I2cReadUInt8(address, buffer, error);
-
-	if( error != 0 )
-        {
-          success = false;
-        }
-        else
-        {
-          outX |= reg;
-
-	  if( outX > 0x7FFF )
-          {
-            outX ^= 0xFFFF;
-            outX++;
-            Bx = -100 * outX / Gain;
-          }
-          else
-          {
-            Bx = 100 * outX / Gain;
-          }	
-  	}
-      }
+      outX = (int16_t)( buffer[ 0 ] | ( buffer[ 1 ] << 8 ) );
+      Bx = 100 * outX / Gain;
     }
   }
 
@@ -565,10 +542,9 @@ bool Lis3mdl::ReadBx()
 /// Read chip OUT_Y_L and OUT_Y_H registers and return true if success.
 bool Lis3mdl::ReadBy()
 {
-  uint8_t reg = 0;
   bool success = true;
 
-  I2Chip::I2cWriteUInt8(LIS3MDL_OUT_Y_H , address, buffer, error);
+  I2Chip::I2cWriteUInt8(LIS3MDL_OUT_Y_L | LIS3MDL_MULTI_RW, address, buffer, error);
 
   if( error != 0 )
   {
@@ -576,7 +552,7 @@ bool Lis3mdl::ReadBy()
   }
   else
   {
-    outY = I2Chip::I2cReadUInt8(address, buffer, error);
+    I2cReadBytes(2, address, buffer, error);
 
     if( error != 0 )
     {
@@ -584,51 +560,20 @@ bool Lis3mdl::ReadBy()
     }
     else
     {
-      outY = outY << 8;
-
-      I2Chip::I2cWriteUInt8(LIS3MDL_OUT_Y_L , address, buffer, error);
-
-      if( error != 0 )
-      {
-        success = false;
-      }
-      else
-      {
-        reg = I2Chip::I2cReadUInt8(address, buffer, error);
-
-	if( error != 0 )
-        {
-          success = false;
-        }
-        else
-        {
-          outY |= reg;
-
-	  if( outY > 0x7FFF )
-          {
-            outY ^= 0xFFFF;
-            outY++;
-            By = -100 * outY / Gain;
-          }
-          else
-          {
-            By = 100 * outY / Gain;
-          }	
-  	}
-      }
+      outY = (int16_t)( buffer[ 0 ] | ( buffer[ 1 ] << 8 ) );
+      By = 100 * outY / Gain;
     }
   }
-
+      
   return success;
 }
 
 /// Read chip OUT_Z_L and OUT_Z_H registers and return true if success.
 bool Lis3mdl::ReadBz()
 {
-  uint8_t reg = 0;
   bool success = true;
 
-  I2Chip::I2cWriteUInt8(LIS3MDL_OUT_Z_H , address, buffer, error);
+  I2Chip::I2cWriteUInt8(LIS3MDL_OUT_Z_L | LIS3MDL_MULTI_RW, address, buffer, error);
 
   if( error != 0 )
   {
@@ -636,7 +581,7 @@ bool Lis3mdl::ReadBz()
   }
   else
   {
-    outZ = I2Chip::I2cReadUInt8(address, buffer, error);
+    I2cReadBytes(2, address, buffer, error);
 
     if( error != 0 )
     {
@@ -644,44 +589,14 @@ bool Lis3mdl::ReadBz()
     }
     else
     {
-      outZ = outZ << 8;
-
-      I2Chip::I2cWriteUInt8(LIS3MDL_OUT_Z_L , address, buffer, error);
-
-      if( error != 0 )
-      {
-        success = false;
-      }
-      else
-      {
-        reg = I2Chip::I2cReadUInt8(address, buffer, error);
-
-	if( error != 0 )
-        {
-          success = false;
-        }
-        else
-        {
-          outZ |= reg;
-
-	  if( outZ > 0x7FFF )
-          {
-            outZ ^= 0xFFFF;
-            outZ++;
-            Bz = -100 * outZ / Gain;
-          }
-          else
-          {
-            Bz = 100 * outZ / Gain;
-          }	
-  	}
-      }
+      outZ = (int16_t)( buffer[ 0 ] | ( buffer[ 1 ] << 8 ) );
+      Bz = 100 * outZ / Gain;
     }
   }
-
+      
   return success;
 }
-
+      
 /// Read STATUS_REG and test if bit ZYXDA bit is set.
 bool Lis3mdl::NewDataXYZ()
 {
@@ -711,30 +626,30 @@ bool Lis3mdl::OverRunXYZ()
 }
 
 /// Set bit ST in CTRL_REG1 following AN4602.
-bool Lis3mdl::SelfTest()
-{
-  bool success = false;
-  uint16_t outZ = 0;
-
-  I2Chip::I2cWriteRegisterUInt8(LIS3MDL_CTRL_REG1, 0x1C, address, buffer, error);
-  if( error != 0 )
-  {
-    success = false;
-  }
-  else
-  {
-    I2Chip::I2cWriteRegisterUInt8(LIS3MDL_CTRL_REG1, 0x40, address, buffer, error);
-    if( error != 0 )
-    {
-      success = false;
-    }
-    else
-    {
-      usleep( 20000 );
-      I2Chip::I2cWriteRegisterUInt8(LIS3MDL_CTRL_REG1, 0x00, address, buffer, error);
-    }
-
-  }
-
-  return success;
-}
+//bool Lis3mdl::SelfTest()
+//{
+//  bool success = false;
+//  uint16_t outZ = 0;
+//
+//  I2Chip::I2cWriteRegisterUInt8(LIS3MDL_CTRL_REG1, 0x1C, address, buffer, error);
+//  if( error != 0 )
+//  {
+//    success = false;
+//  }
+//  else
+//  {
+//    I2Chip::I2cWriteRegisterUInt8(LIS3MDL_CTRL_REG1, 0x40, address, buffer, error);
+//    if( error != 0 )
+//    {
+//      success = false;
+//    }
+//    else
+//    {
+//      usleep( 20000 );
+//      I2Chip::I2cWriteRegisterUInt8(LIS3MDL_CTRL_REG1, 0x00, address, buffer, error);
+//    }
+//
+//  }
+//
+//  return success;
+//}

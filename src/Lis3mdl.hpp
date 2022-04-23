@@ -2,7 +2,7 @@
  * 
  * Lis3mdl class definitions and constructor. Base class is I2Chip. 
  *       
- * Copyright (C) 2021 Jaakko Koivuniemi.
+ * Copyright (C) 2021 - 2022 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Sep 10 13:40:47 CDT 2021
- * Edit: Mon Sep 13 19:04:26 CDT 2021
+ * Edit: Fri Apr 22 19:05:55 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -66,13 +66,16 @@ class Lis3mdl : public I2Chip
     /// buffer to transfer serial data to and from chip
     uint8_t buffer[ BUFFER_MAX ] = { };
 
-    uint16_t outX = 0; ///< last reading from OUT_X_L and OUT_X_H
-    uint16_t outY = 0; ///< last reading from OUT_Y_L and OUT_Y_H
-    uint16_t outZ = 0; ///< last reading from OUT_Z_L and OUT_Z_H
+    int16_t outX = 0; ///< last reading from OUT_X_L and OUT_X_H
+    int16_t outY = 0; ///< last reading from OUT_Y_L and OUT_Y_H
+    int16_t outZ = 0; ///< last reading from OUT_Z_L and OUT_Z_H
+    int16_t temp = 0; ///< last reading from TEMP_OUT_L and TEMP_OUT_H
+
     double Gain = 6842;    ///< gain@16-bit [LSB/G] last setting  
     double Bx;    ///< Bx[uT] from last reading 
     double By;    ///< By[uT] from last reading 
     double Bz;    ///< Bz[uT] from last reading 
+    double T;     ///< T[C] from last reading
 
    public:
     /// Construct Lis3mdl object with parameters.
@@ -113,14 +116,20 @@ class Lis3mdl : public I2Chip
     /// Get magnetic field value Bz[G] from last reading. 
     double GetBz() { return Bz; }
 
+    /// Get temperature value T[C] from last reading.
+    double GetT() { return T; }
+
     /// Get outX from last reading. 
-    uint16_t GetOutX() { return outX; }
+    int16_t GetOutX() { return outX; }
 
     /// Get outY from last reading. 
-    uint16_t GetOutY() { return outY; }
+    int16_t GetOutY() { return outY; }
 
     /// Get outZ from last reading. 
-    uint16_t GetOutZ() { return outZ; }
+    int16_t GetOutZ() { return outZ; }
+
+    /// Get temp from last reading.
+    int16_t GetTemp();
 
     /// Set chip name tag.
     void SetName(std::string name) { this->name = name; }
@@ -263,8 +272,8 @@ class Lis3mdl : public I2Chip
     /// Read chip STATUS_REG and test if bit ZYXOR bit is set.
     bool OverRunXYZ();
 
-    /// Self-test procedure. Return true if success.
-    bool SelfTest();
+//    /// Self-test procedure. Return true if success.
+//    bool SelfTest();
 };
 
 #endif
