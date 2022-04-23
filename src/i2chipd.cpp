@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Fri 22 Apr 2022 08:42:11 PM CDT
+ * Edit: Sat Apr 23 13:23:09 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -60,7 +60,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220422; // program version
+  const int version = 20220423; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -688,35 +688,43 @@ int main()
       if( i == 0 ) lis3dh[ i ]->SetAddress0x18(); 
       else lis3dh[ i ]->SetAddress0x19();
 
-      fprintf(stderr, SD_INFO "%s %s %d\n", lis3dh[ i ]->GetName().c_str(), lis3dh[ i ]->GetDevice().c_str(), lis3dh[ i ]->GetAddress() );
-      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis3dh_db->GetTable().c_str() );
-      fprintf(stderr, SD_INFO "Reboot memory content\n");
-      lis3dh[ i ]->Boot( );
-      usleep( 10000 );
+      if( lis3dh[ i ]->WhoAmI() )
+      {
+        fprintf(stderr, SD_INFO "%s %s %d\n", lis3dh[ i ]->GetName().c_str(), lis3dh[ i ]->GetDevice().c_str(), lis3dh[ i ]->GetAddress() );
+        fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis3dh_db->GetTable().c_str() );
+        fprintf(stderr, SD_INFO "Reboot memory content\n");
+        lis3dh[ i ]->Boot( );
+        usleep( 10000 );
 
-      lis3dh[ i ]->SetDataRate( 0 );
+        lis3dh[ i ]->SetDataRate( 0 );
 
-      fprintf(stderr, SD_INFO "Enable X, Y and Z\n");
-      lis3dh[ i ]->XEnable();
-      lis3dh[ i ]->YEnable();
-      lis3dh[ i ]->ZEnable();
+        fprintf(stderr, SD_INFO "Enable X, Y and Z\n");
+        lis3dh[ i ]->XEnable();
+        lis3dh[ i ]->YEnable();
+        lis3dh[ i ]->ZEnable();
 
-      fprintf(stderr, SD_INFO "Set data rate 10 Hz\n");
-      lis3dh[ i ]->SetDataRate( 2 );
+        fprintf(stderr, SD_INFO "Set data rate 10 Hz\n");
+        lis3dh[ i ]->SetDataRate( 2 );
 
-      fprintf(stderr, SD_INFO "Set block data update\n");
-      lis3dh[ i ]->BlockDataEnable();
+        fprintf(stderr, SD_INFO "Set block data update\n");
+        lis3dh[ i ]->BlockDataEnable();
 
-      fprintf(stderr, SD_INFO "Start normal mode\n");
-      lis3dh[ i ]->NormalMode();
+        fprintf(stderr, SD_INFO "Start normal mode\n");
+        lis3dh[ i ]->NormalMode();
 
-      fprintf(stderr, SD_INFO "Enable ADC\n");
-      lis3dh[ i ]->ADCEnable();
+        fprintf(stderr, SD_INFO "Enable ADC\n");
+        lis3dh[ i ]->ADCEnable();
 
-      fprintf(stderr, SD_INFO "Enable temperature measurement\n");
-      lis3dh[ i ]->TempEnable();
+        fprintf(stderr, SD_INFO "Enable temperature measurement\n");
+        lis3dh[ i ]->TempEnable();
+      }
+      else
+      {
+        fprintf(stderr, SD_ERR "LIS3DH not found from i2c bus address 0x%2X, drop from reading loop\n", lis3dh[ i ]->GetAddress() );
+        lis3dh[ i ] = nullptr;
+      }
     }
-  }    
+  }
 
   if( lis2mdl )
   {
@@ -749,19 +757,27 @@ int main()
       if( i == 0 ) lis3mdl[ i ]->SetAddress0x1C(); 
       else lis3mdl[ i ]->SetAddress0x1E();
 
-      lis3mdl[ i ]->SetXYOpMode( 3 );
-      lis3mdl[ i ]->SetZOpMode( 3 );
-      lis3mdl[ i ]->SetFullScale( 0 );
-      lis3mdl[ i ]->FastReadEnable();
-      lis3mdl[ i ]->TempEnable();
+      if( lis3mdl[ i ]->WhoAmI() )
+      {
+        lis3mdl[ i ]->SetXYOpMode( 3 );
+        lis3mdl[ i ]->SetZOpMode( 3 );
+        lis3mdl[ i ]->SetFullScale( 0 );
+        lis3mdl[ i ]->FastReadEnable();
+        lis3mdl[ i ]->TempEnable();
 
-      fprintf(stderr, SD_INFO "%s %s %d\n", lis3mdl[ i ]->GetName().c_str(), lis3mdl[ i ]->GetDevice().c_str(), lis3mdl[ i ]->GetAddress() );
-      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis3mdl_db->GetTable().c_str() );
-      fprintf(stderr, SD_INFO "XY operation mode %d\n", lis3mdl[ i ]->GetXYOpMode());
-      fprintf(stderr, SD_INFO "Z operation mode %d\n", lis3mdl[ i ]->GetZOpMode());
-      fprintf(stderr, SD_INFO "Full scale %d\n", lis3mdl[ i ]->GetFullScale());
-      fprintf(stderr, SD_INFO "Fast read enabled\n");
-      fprintf(stderr, SD_INFO "Enable temperature sensor\n");
+        fprintf(stderr, SD_INFO "%s %s %d\n", lis3mdl[ i ]->GetName().c_str(), lis3mdl[ i ]->GetDevice().c_str(), lis3mdl[ i ]->GetAddress() );
+        fprintf(stderr, SD_DEBUG "SQLite table: %s\n", lis3mdl_db->GetTable().c_str() );
+        fprintf(stderr, SD_INFO "XY operation mode %d\n", lis3mdl[ i ]->GetXYOpMode());
+        fprintf(stderr, SD_INFO "Z operation mode %d\n", lis3mdl[ i ]->GetZOpMode());
+        fprintf(stderr, SD_INFO "Full scale %d\n", lis3mdl[ i ]->GetFullScale());
+        fprintf(stderr, SD_INFO "Fast read enabled\n");
+        fprintf(stderr, SD_INFO "Enable temperature sensor\n");
+      }
+      else
+      {
+        fprintf(stderr, SD_ERR "LIS3MDL not found from i2c bus address 0x%2X, drop from reading loop\n", lis3mdl[ i ]->GetAddress() );
+        lis3mdl[ i ] = nullptr;
+      }
     }
   }    
 
