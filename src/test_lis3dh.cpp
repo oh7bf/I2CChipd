@@ -28,6 +28,7 @@
 #include "test_lis3dh.hpp"
 #include <iostream>
 #include <unistd.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -129,10 +130,21 @@ int main(int argc, char **argv)
     chip->YEnable();
     cout << "-- enable Z data\n";
     chip->ZEnable();
-    cout << "-- set output data rate 10 Hz\n";
-    chip->SetDataRate( 2 );
+    cout << "-- set output data rate 25 Hz\n";
+    chip->SetDataRate( 3 );
     cout << "-- read data rate bits\n";
     cout << (int)chip->GetDataRate() << "\n";
+
+    cout << "-- set block data update\n";
+    chip->BlockDataEnable();
+    cout << "-- normal mode\n";
+    chip->NormalMode();
+
+    cout << "-- boot\n";
+    chip->Boot();
+
+    cout << "-- wait 10 ms\n";
+    usleep( 10000 );
 
     cout << "-- set block data update\n";
     chip->BlockDataEnable();
@@ -144,74 +156,114 @@ int main(int argc, char **argv)
     cout << "-- enable temperature measurement\n";
     chip->TempEnable();
 
-    cout << "-- boot\n";
-    chip->Boot();
-
-    cout << "-- set block data update\n";
-    chip->BlockDataEnable();
-    cout << "-- normal mode\n";
-    chip->NormalMode();
-
-//    reference = chip->GetReference();
-
-//    cout << "-- enable FIFO\n";
-//    chip->FifoEnable();
-
-//    cout << "-- set FIFO mode 2\n";
-//    chip->SetFifoMode( 2 );
-
-//    cout << "-- read FIFO mode\n";
-//    cout << (int)chip->GetFifoMode() << "\n";
-
-//    cout << "-- sleep 100 ms\n";
-//    usleep( 100000 ); // sleep 100 ms
-
-//    uint8_t samples = chip->ReadFifo();
-
-//    int16_t *fifoX = chip->GetFifoX();
-//    cout << "-- FIFO samples " << samples << "\n";
-//    cout << fifoX[ 0 ] << "\n";
-
-//    cout << "-- FS = " << chip->GetFS() << "\n";
-
-    cout << "outX[g]       outY[g]        outZ[g]     latency[ms]     Temp\n";
+    cout << "outX[g]       outY[g]        outZ[g]     Adc1   Adc2   Adc3   latency[ms]\n";
     int i, j, error = 0;
     for( j = 0; j < 10; j++ )
     {
-        i = 0;
-    	while( !chip->NewDataXYZ() && i < 2000 )
-        {
-            usleep( 1000 ); // sleep 1 ms
-            i++;	
-        }
+      i = 0;
+      while( !chip->NewDataXYZ() && i < 2000 )
+      {
+        usleep( 1000 ); // sleep 1 ms
+        i++;	
+      }
 
-        if( i >= 2000 )
-        {
-            cout << "-- timeout waiting new data, exit now\n";
-            return -1;
-        }
+      if( i >= 2000 )
+      {
+        cout << "-- timeout waiting new data, exit now\n";
+        return -1;
+      }
 
-	if( chip->OverRunXYZ() ) cout << "-- overrun\n";
+      if( chip->OverRunXYZ() ) cout << "-- overrun\n";
 
-	if( !chip->Readg() )
-        {
-          error = chip->GetError();
-          cout << "-- error " << error << "\n";
-          cout << "-- problem reading field, quit now\n";
-          return -1;
-        }
+      if( !chip->Readg() )
+      {
+        error = chip->GetError();
+        cout << "-- error " << error << "\n";
+        cout << "-- problem reading field, quit now\n";
+        return -1;
+      }
+
+      if( !chip->ReadAdc() )
+      {
+        error = chip->GetError();
+        cout << "-- error " << error << "\n";
+        cout << "-- problem reading ADC, quit now\n";
+        return -1;
+      }
 
 //        cout << chip->GetOutX() << "     ";
 //        cout << chip->GetOutY() << "     ";
 //       	cout << chip->GetOutZ() << "     ";
 
-        cout << chip->Getgx() << "     ";
-        cout << chip->Getgy() << "     ";
-       	cout << chip->Getgz() << "     ";
-	cout << i << "      ";
-        chip->ReadAdc();
-        cout << chip->GetAdc3() << "\n";
+      cout << chip->Getgx() << "     ";
+      cout << chip->Getgy() << "     ";
+      cout << chip->Getgz() << "     ";
+      cout << chip->GetAdc1() << "    ";
+      cout << chip->GetAdc2() << "    ";
+      cout << chip->GetAdc3() << "    ";
+      cout << i << "\n";
     }
+
+    cout << "-- enable FIFO\n";
+    chip->FifoEnable();
+    cout << "-- set FIFO mode 2 Stream\n";
+    chip->SetFifoMode( 2 );
+    cout << "-- read FIFO mode\n";
+    cout << (int)chip->GetFifoMode() << "\n";
+
+    cout << "-- sleep 1000 ms\n";
+    usleep( 1400000 ); 
+
+    uint8_t samples = chip->ReadFifo();
+    int16_t *fifoX = chip->GetFifoX();
+    int16_t *fifoY = chip->GetFifoY();
+    int16_t *fifoZ = chip->GetFifoZ();
+
+    cout << "-- FIFO samples " << (int)samples << "\n";
+    cout << "j    fifoX[j]    fifoY[j]   fifoZ[j]\n";
+    for( j = 0; j < samples; j++ ) 
+      cout << j << "   " << fifoX[ j ] << "   " << fifoY[ j ] << "   " << fifoZ[ j ] << "\n";
+
+    cout << "-- sorted arrays\n";
+    sort( fifoX, fifoX + samples );
+    sort( fifoY, fifoY + samples );
+    sort( fifoZ, fifoZ + samples );
+
+    cout << "j    fifoX[j]    fifoY[j]   fifoZ[j]\n";
+    for( j = 0; j < samples; j++ ) 
+      cout << j << "   " << fifoX[ j ] << "   " << fifoY[ j ] << "   " << fifoZ[ j ] << "\n";
+
+    int16_t xmedian = 0, xmin = 0, xmax = 0, ymedian = 0, ymin = 0, ymax = 0, zmedian = 0, zmin = 0, zmax = 0;
+
+    if( samples == 32 )
+    {
+      xmedian = ( fifoX[ 15 ] + fifoX[ 16 ] ) / 2.0;
+      xmin = fifoX[ 0 ];
+      xmax = fifoX[ 31 ];
+
+      ymedian = ( fifoY[ 15 ] + fifoY[ 16 ] ) / 2.0;
+      ymin = fifoY[ 0 ];
+      ymax = fifoY[ 31 ];
+
+      zmedian = ( fifoZ[ 15 ] + fifoZ[ 16 ] ) / 2.0;
+      zmin = fifoZ[ 0 ];
+      zmax = fifoZ[ 31 ];
+
+      cout << "-- xmin, xmed, xmax = [" << xmin << "," << xmedian << "," << xmax << "]\n";
+      cout << "-- ymin, ymed, ymax = [" << ymin << "," << ymedian << "," << ymax << "]\n";
+      cout << "-- zmin, zmed, zmax = [" << zmin << "," << zmedian << "," << zmax << "]\n";
+
+    }
+
+    cout << "-- FS = " << chip->GetFS() << "\n";
+
+    cout << "-- disable FIFO\n";
+    chip->FifoDisable();
+    cout << "-- set FIFO mode 0 Bypass\n";
+    chip->SetFifoMode( 0 );
+    cout << "-- read FIFO mode\n";
+    cout << (int)chip->GetFifoMode() << "\n";
+
   }
 
   delete chip;
