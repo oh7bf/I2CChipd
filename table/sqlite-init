@@ -37,12 +37,19 @@ create table lis3dh(
 no integer primary key,
 ts timestamp default current_timestamp,
 name varchar(20),
+gxmin real,
 gx real,
+gxmax real,
+gymin real,
 gy real,
+gymax real,
+gzmin real,
 gz real,
+gzmax real,
 adc1 real,
 adc2 real,
-adc3 real
+adc3 real,
+odr integer
 );
 
 create table lis2mdl(

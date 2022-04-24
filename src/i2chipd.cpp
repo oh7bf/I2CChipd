@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Sat Apr 23 13:23:09 CDT 2022
+ * Edit: Sun Apr 24 10:40:56 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -32,6 +32,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <algorithm>
 
 #ifdef USE_DIM_LIBS
 #include <dis.hxx>
@@ -60,7 +61,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220423; // program version
+  const int version = 20220424; // program version
   
   string i2cdev = "/dev/i2c-1";
   string spidev00 = "/dev/spidev0.0";
@@ -281,7 +282,7 @@ int main()
   SQLite *bmp280_db  = new SQLite(sqlitedb, "bmp280", "insert into bmp280 (name,temperature,pressure) values (?,?,?)");
   SQLite *bme680_db  = new SQLite(sqlitedb, "bme680", "insert into bme680 (name,temperature,humidity,pressure,resistance,gasvalid,stable) values (?,?,?,?,?,?,?)");
   SQLite *bh1750fvi_db  = new SQLite(sqlitedb, "bh1750fvi", "insert into bh1750fvi (name,illuminance) values (?,?)");
-  SQLite *lis3dh_db  = new SQLite(sqlitedb, "lis3dh", "insert into lis3dh(name,gx,gy,gz,adc1,adc2,adc3) values (?,?,?,?,?,?,?)");
+  SQLite *lis3dh_db  = new SQLite(sqlitedb, "lis3dh", "insert into lis3dh(name,gxmin,gx,gxmax,gymin,gy,gymax,gzmin,gz,gzmax,adc1,adc2,adc3,odr) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
   SQLite *lis2mdl_db  = new SQLite(sqlitedb, "lis2mdl", "insert into lis2mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *lis3mdl_db  = new SQLite(sqlitedb, "lis3mdl", "insert into lis3mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
@@ -349,12 +350,19 @@ int main()
 
   struct lis3dhd
   {
+    double gxmin = 0;
     double gx = 0;
+    double gxmax = 0;
+    double gymin = 0;
     double gy = 0;
+    double gymax = 0;
+    double gzmin = 0;
     double gz = 0;
+    double gzmax = 0;
     double adc1 = 0;
     double adc2 = 0;
     double adc3 = 0;
+    int odr = 0;
   };
 
   lis3dhd lis3dhx18data, lis3dhx19data;
@@ -481,7 +489,7 @@ int main()
   if( lis3dhx18 )
   {
     fprintf(stderr, SD_DEBUG "Create DIM service lis3dhx18\n");
-    lis3dhx18Dim = new DimService( (dimserver + "/lis3dhx18").c_str(), "D:6", &lis3dhx18data, sizeof( lis3dhx18data ) );
+    lis3dhx18Dim = new DimService( (dimserver + "/lis3dhx18").c_str(), "D:12;I:1", &lis3dhx18data, sizeof( lis3dhx18data ) );
   }
   else
   {
@@ -491,7 +499,7 @@ int main()
   if( lis3dhx19 )
   {
     fprintf(stderr, SD_DEBUG "Create DIM service lis3dhx19\n");
-    lis3dhx19Dim = new DimService( (dimserver + "/lis3dhx19").c_str(), "D:6", &lis3dhx19data, sizeof( lis3dhx19data ) );
+    lis3dhx19Dim = new DimService( (dimserver + "/lis3dhx19").c_str(), "D:12;I:1", &lis3dhx19data, sizeof( lis3dhx19data ) );
   }
   else
   {
@@ -717,6 +725,12 @@ int main()
 
         fprintf(stderr, SD_INFO "Enable temperature measurement\n");
         lis3dh[ i ]->TempEnable();
+
+        fprintf(stderr, SD_INFO "Enable FIFO\n");
+        lis3dh[ i ]->FifoEnable();
+
+	fprintf(stderr, SD_INFO "Set FIFO mode 2 Stream\n");
+        lis3dh[ i ]->SetFifoMode( 2 );
       }
       else
       {
@@ -798,10 +812,18 @@ int main()
   double T = 0, TF = 0, RH = 0, p = 0, R = 0, Ev = 0;
   double Bx = 0, By = 0, Bz = 0;
   double gx = 0, gy = 0, gz = 0;
+  double gxmin = 0, gymin = 0, gzmin = 0;
+  double gxmax = 0, gymax = 0, gzmax = 0;
   double adc1 = 0, adc2 = 0, adc3 = 0;
+  uint8_t samples = 0;
+  int16_t *fifoX = new int16_t[ 32 ]; 
+  int16_t *fifoY = new int16_t[ 32 ]; 
+  int16_t *fifoZ = new int16_t[ 32 ]; 
+  int16_t xmedian = 0, xmin = 0, xmax = 0, ymedian = 0, ymin = 0, ymax =0, zmedian = 0, zmin = 0, zmax =0;
+  uint8_t ODR = 0;
   char Valid = 'N', Stable = 'N';
   int F = 0;
-  double dbl_array[ 10 ];
+  double dbl_array[ 12 ];
   int int_array[ 10 ];
   int j = 0;
   while( cont )
@@ -1032,10 +1054,6 @@ int main()
     {
       if( lis3dh[ i ] )
       {
-//        lis3dh[ i ]->Boot();
-//        lis3dh[ i ]->BlockDataEnable();
-//        lis3dh[ i ]->NormalMode();
-
         j = 0;
         while( !lis3dh[ i ]->NewDataXYZ() && j < 2000 )
 	{
@@ -1045,61 +1063,145 @@ int main()
     
         if( j < 2000 )
         {
-	  if( lis3dh[ i ]->Readg() )
+          samples = lis3dh[ i ]->ReadFifo();
+          fprintf(stderr, SD_INFO "%s FIFO has %d samples\n", lis3dh[ i ]->GetName().c_str(), samples );
+          ODR = lis3dh[ i ]->GetDataRate();	    
+
+          if( samples > 0 )
           {
-             gx = lis3dh[ i ]->Getgx();
-             gy = lis3dh[ i ]->Getgy();
-             gz = lis3dh[ i ]->Getgz();
+            gxmin = 0;
+            gymin = 0;
+            gzmin = 0;
+      
+            gxmax = 0;
+            gymax = 0;
+            gzmax = 0;
 
-             fprintf(stderr, SD_INFO "%s gx = %f, gy = %f, gz = %f\n", lis3dh[ i ]->GetName().c_str(), gx, gy, gz);
+	    if( samples == 32 )
+            {
+              fifoX = lis3dh[ i ]->GetFifoX();
+              fifoY = lis3dh[ i ]->GetFifoY();
+              fifoZ = lis3dh[ i ]->GetFifoZ();
 
-             lis3dh_gx_file[ i ]->Write( gx );
-             lis3dh_gy_file[ i ]->Write( gy );
-             lis3dh_gz_file[ i ]->Write( gz );
+              sort( fifoX, fifoX + samples );
+              sort( fifoY, fifoY + samples );
+              sort( fifoZ, fifoZ + samples );
 
-             if( lis3dh[ i ]->ReadAdc() )
-             {
-               adc1 = lis3dh[ i ]->GetAdc1();
-               adc2 = lis3dh[ i ]->GetAdc2();
-               adc3 = lis3dh[ i ]->GetAdc3();
+              xmedian = ( fifoX[ 15 ] + fifoX[ 16 ] ) / 2.0;
+              xmin = fifoX[ 0 ];
+              xmax = fifoX[ 31 ];
 
-               fprintf(stderr, SD_INFO "%s adc1 = %f, adc2 = %f, adc3 = %f\n", lis3dh[ i ]->GetName().c_str(), adc1, adc2, adc3);
+              ymedian = ( fifoY[ 15 ] + fifoY[ 16 ] ) / 2.0;
+              ymin = fifoY[ 0 ];
+              ymax = fifoY[ 31 ];
 
-               lis3dh_adc1_file[ i ]->Write( adc1 );
-               lis3dh_adc2_file[ i ]->Write( adc2 );
-               lis3dh_adc3_file[ i ]->Write( adc3 );
-	     }
+              zmedian = ( fifoZ[ 15 ] + fifoZ[ 16 ] ) / 2.0;
+              zmin = fifoZ[ 0 ];
+              zmax = fifoZ[ 31 ];
 
-             dbl_array[ 0 ] = gx;
-             dbl_array[ 1 ] = gy;
-             dbl_array[ 2 ] = gz;
-             dbl_array[ 3 ] = adc1;
-             dbl_array[ 4 ] = adc2;
-             dbl_array[ 5 ] = adc3;
+              fprintf(stderr, SD_INFO "xmin, xmed, xmax = [%d, %d, %d]\n", xmin, xmedian, xmax);
+              fprintf(stderr, SD_INFO "ymin, ymed, ymax = [%d, %d, %d]\n", ymin, ymedian, ymax);
+              fprintf(stderr, SD_INFO "zmin, zmed, zmax = [%d, %d, %d]\n", zmin, zmedian, zmax);
 
-             lis3dh_db->Insert(lis3dh[ i ]->GetName(), 6, dbl_array, sqlite_err);
-             if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+              gx = lis3dh[ i ]->GetFS() * (double)xmedian / 32768.0;
+              gy = lis3dh[ i ]->GetFS() * (double)ymedian / 32768.0;
+              gz = lis3dh[ i ]->GetFS() * (double)zmedian / 32768.0;
+
+              gxmin = lis3dh[ i ]->GetFS() * (double)xmin / 32768.0;
+              gymin = lis3dh[ i ]->GetFS() * (double)ymin / 32768.0;
+              gzmin = lis3dh[ i ]->GetFS() * (double)zmin / 32768.0;
+
+	      gxmax = lis3dh[ i ]->GetFS() * (double)xmax / 32768.0;
+              gymax = lis3dh[ i ]->GetFS() * (double)ymax / 32768.0;
+              gzmax = lis3dh[ i ]->GetFS() * (double)zmax / 32768.0;
+
+              fprintf(stderr, SD_INFO "%s median gx = %f, gy = %f, gz = %f with ODR %d\n", lis3dh[ i ]->GetName().c_str(), gx, gy, gz, ODR);
+	    }
+	    else 
+            {
+              gx = lis3dh[ i ]->GetFS() * (double)fifoX[ 0 ] / 32768.0;
+              gy = lis3dh[ i ]->GetFS() * (double)fifoY[ 0 ] / 32768.0;
+              gz = lis3dh[ i ]->GetFS() * (double)fifoZ[ 0 ] / 32768.0;
+          
+              fprintf(stderr, SD_INFO "%s gx = %f, gy = %f, gz = %f\n", lis3dh[ i ]->GetName().c_str(), gx, gy, gz);
+            }  
+
+	    lis3dh_gx_file[ i ]->Write( gx );
+            lis3dh_gy_file[ i ]->Write( gy );
+            lis3dh_gz_file[ i ]->Write( gz );
+
+            if( lis3dh[ i ]->ReadAdc() )
+            {
+              adc1 = lis3dh[ i ]->GetAdc1();
+              adc2 = lis3dh[ i ]->GetAdc2();
+              adc3 = lis3dh[ i ]->GetAdc3();
+
+              fprintf(stderr, SD_INFO "%s adc1 = %f, adc2 = %f, adc3 = %f\n", lis3dh[ i ]->GetName().c_str(), adc1, adc2, adc3);
+
+              lis3dh_adc1_file[ i ]->Write( adc1 );
+              lis3dh_adc2_file[ i ]->Write( adc2 );
+              lis3dh_adc3_file[ i ]->Write( adc3 );
+	    }
+
+            dbl_array[ 0 ] = gxmin;
+            dbl_array[ 1 ] = gx;
+            dbl_array[ 2 ] = gxmax;
+
+	    dbl_array[ 3 ] = gymin;
+            dbl_array[ 4 ] = gy;
+            dbl_array[ 5 ] = gymax;
+
+	    dbl_array[ 6 ] = gzmin;
+            dbl_array[ 7 ] = gz;
+            dbl_array[ 8 ] = gzmax;
+
+	    dbl_array[ 9 ] = adc1;
+            dbl_array[ 10 ] = adc2;
+            dbl_array[ 11 ] = adc3;
+
+	    int_array[ 0 ] = ODR;
+
+            lis3dh_db->Insert(lis3dh[ i ]->GetName(), 12, dbl_array, 1, int_array, sqlite_err);
+            if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
 #ifdef USE_DIM_LIBS
 	     if( i == 0 && dimruns )
              {
+               lis3dhx18data.gxmin = gxmin;
                lis3dhx18data.gx = gx;
+               lis3dhx18data.gxmax = gxmax;
+               lis3dhx18data.gymin = gymin;
                lis3dhx18data.gy = gy;
+               lis3dhx18data.gymax = gymax;
+               lis3dhx18data.gzmin = gzmin;
                lis3dhx18data.gz = gz;
-               lis3dhx18data.adc1 = adc1;
+               lis3dhx18data.gzmax = gzmax;
+
+	       lis3dhx18data.adc1 = adc1;
                lis3dhx18data.adc2 = adc2;
                lis3dhx18data.adc3 = adc3;
-               lis3dhx18Dim->updateService();
+               lis3dhx18data.odr = ODR;
+
+	       lis3dhx18Dim->updateService();
              }
              else if( dimruns )
 	     {
+               lis3dhx19data.gxmin = gxmin;
                lis3dhx19data.gx = gx;
+               lis3dhx19data.gxmax = gxmax;
+               lis3dhx19data.gymin = gymin;
                lis3dhx19data.gy = gy;
+               lis3dhx19data.gymax = gymax;
+               lis3dhx19data.gzmin = gzmin;
                lis3dhx19data.gz = gz;
+               lis3dhx19data.gzmax = gzmax;
+
 	       lis3dhx19data.adc1 = adc1;
                lis3dhx19data.adc2 = adc2;
                lis3dhx19data.adc3 = adc3;
-               lis3dhx19Dim->updateService();
+               lis3dhx19data.odr = ODR;
+
+	       lis3dhx19Dim->updateService();
 	     }
 #endif
 	  }
@@ -1112,7 +1214,6 @@ int main()
         {
           fprintf(stderr, SD_NOTICE "%s reading timeout\n", lis3dh[ i ]->GetName().c_str());
         }
-
       }	
     }
     
