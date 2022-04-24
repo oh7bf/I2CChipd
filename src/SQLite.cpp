@@ -2,7 +2,7 @@
  * 
  * SQLite class member functions. 
  *       
- * Copyright (C) 2020 Jaakko Koivuniemi.
+ * Copyright (C) 2020 - 2022 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Tue Jul 14 13:30:25 CDT 2020
- * Edit: Wed Jul 15 10:34:02 CDT 2020
+ * Edit: Sun Apr 24 15:14:57 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -111,6 +111,9 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
 
   char message[ 500 ] = "";
 
+  sprintf(message, "Open database: %s\n", file.c_str() );
+  fprintf(stderr, SD_DEBUG "%s", message);
+
   int rc = sqlite3_open_v2(file.c_str(), &db, SQLITE_OPEN_READWRITE, NULL);
 
   if( rc != SQLITE_OK )
@@ -125,6 +128,9 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
 
   int i, j;
 
+  sprintf(message, "Prepare statement: %s\n", insert_stmt.c_str() );
+  fprintf(stderr, SD_DEBUG "%s", message);
+
   rc = sqlite3_prepare_v2(db, insert_stmt.c_str(), 200, &stmt, 0);
 
   if( rc != SQLITE_OK )
@@ -138,6 +144,9 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
   }
   else
   {
+    sprintf(message, "Bind text: %s\n", name.c_str() );
+    fprintf(stderr, SD_DEBUG "%s", message);
+
     rc = sqlite3_bind_text(stmt, 1, name.c_str(), name.length(), SQLITE_STATIC);
 
     if( rc != SQLITE_OK )
@@ -155,7 +164,10 @@ bool SQLite::Insert(std::string name, int N, double *data, int & error)
     {
       for( i = 1; i <= N; i++)
       {
-        rc = sqlite3_bind_double(stmt, i + 1, data[ i - 1 ]);
+        sprintf(message, "Bind double %f to position %d\n", data[ i - 1], i+1 );
+        fprintf(stderr, SD_DEBUG "%s", message);
+
+      	rc = sqlite3_bind_double(stmt, i + 1, data[ i - 1 ]);
 
     	if( rc != SQLITE_OK )
         {
@@ -209,6 +221,9 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
   char message[ 500 ] = "";
 
+  sprintf(message, "Open database: %s\n", file.c_str() );
+  fprintf(stderr, SD_DEBUG "%s", message);
+
   int rc = sqlite3_open_v2(file.c_str(), &db, SQLITE_OPEN_READWRITE, NULL);
 
   if( rc != SQLITE_OK )
@@ -223,6 +238,10 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
   int i, j;
 
+
+  sprintf(message, "Prepare statement: %s\n", insert_stmt.c_str() );
+  fprintf(stderr, SD_DEBUG "%s", message);
+
   rc = sqlite3_prepare_v2(db, insert_stmt.c_str(), 200, &stmt, 0);
 
   if( rc != SQLITE_OK )
@@ -236,11 +255,15 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
   }
   else
   {
+
+    sprintf(message, "Bind text: %s\n", name.c_str() );
+    fprintf(stderr, SD_DEBUG "%s", message);
+
     rc = sqlite3_bind_text(stmt, 1, name.c_str(), name.length(), SQLITE_STATIC);
 
     if( rc != SQLITE_OK )
     {
-      sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
+      sprintf(message, "Binding text failed: %s\n", sqlite3_errmsg( db ) );
       fprintf(stderr, SD_ERR "%s", message);
       error = rc;
 
@@ -253,11 +276,15 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
     {
       for( i = 1; i <= Nd; i++)
       {
-        rc = sqlite3_bind_double(stmt, i + 1, dbl_array[ i - 1 ]);
+
+        sprintf(message, "Bind double %f to position %d\n", dbl_array[ i - 1], i+1 );
+        fprintf(stderr, SD_DEBUG "%s", message);
+
+      	rc = sqlite3_bind_double(stmt, i + 1, dbl_array[ i - 1 ]);
 
     	if( rc != SQLITE_OK )
         {
-          sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
+          sprintf(message, "Binding double failed: %s\n", sqlite3_errmsg( db ) );
           fprintf(stderr, SD_ERR "%s", message);
           error = rc;
 
@@ -268,11 +295,14 @@ bool SQLite::Insert(std::string name, int Nd, double *dbl_array, int Ni, int *in
 
       for( i = 0; i < Ni; i++)
       {
-        rc = sqlite3_bind_int(stmt, i + Nd + 2, int_array[ i ]);
+        sprintf(message, "Bind integer %d to position %d\n", int_array[ i ], i+Nd+2 );
+        fprintf(stderr, SD_DEBUG "%s", message);
 
-    	if( rc != SQLITE_OK )
+	rc = sqlite3_bind_int(stmt, i + Nd + 2, int_array[ i ]);
+
+	if( rc != SQLITE_OK )
         {
-          sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
+          sprintf(message, "Binding int failed: %s\n", sqlite3_errmsg( db ) );
           fprintf(stderr, SD_ERR "%s", message);
           error = rc;
 

@@ -2,7 +2,7 @@
  * 
  * SQLite database class definitions and constructor. 
  *       
- * Copyright (C) 2020 Jaakko Koivuniemi.
+ * Copyright (C) 2020 - 2022 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Tue Jul 14 10:58:25 CDT 2020
- * Edit: 
+ * Edit: Sun Apr 24 15:15:44 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -76,7 +76,7 @@ class SQLite
     /// Insert name and N doubles to database table and return true in success.
     bool Insert(std::string name, int N, double *data, int & error);
 
-    /// Insert name, N doubles and M integers to database table and return true in success.
+    /// Insert name, Nd doubles and Ni integers to database table and return true in success.
     bool Insert(std::string name, int Nd, double *dbl_array, int Ni, int *int_array, int & error);
 
 };
