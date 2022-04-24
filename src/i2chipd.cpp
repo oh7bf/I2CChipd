@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Sun Apr 24 10:40:56 CDT 2022
+ * Edit: Sun Apr 24 16:54:14 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -359,9 +359,9 @@ int main()
     double gzmin = 0;
     double gz = 0;
     double gzmax = 0;
-    double adc1 = 0;
-    double adc2 = 0;
-    double adc3 = 0;
+    int adc1 = 0;
+    int adc2 = 0;
+    int adc3 = 0;
     int odr = 0;
   };
 
@@ -489,7 +489,7 @@ int main()
   if( lis3dhx18 )
   {
     fprintf(stderr, SD_DEBUG "Create DIM service lis3dhx18\n");
-    lis3dhx18Dim = new DimService( (dimserver + "/lis3dhx18").c_str(), "D:12;I:1", &lis3dhx18data, sizeof( lis3dhx18data ) );
+    lis3dhx18Dim = new DimService( (dimserver + "/lis3dhx18").c_str(), "D:9;I:4", &lis3dhx18data, sizeof( lis3dhx18data ) );
   }
   else
   {
@@ -499,7 +499,7 @@ int main()
   if( lis3dhx19 )
   {
     fprintf(stderr, SD_DEBUG "Create DIM service lis3dhx19\n");
-    lis3dhx19Dim = new DimService( (dimserver + "/lis3dhx19").c_str(), "D:12;I:1", &lis3dhx19data, sizeof( lis3dhx19data ) );
+    lis3dhx19Dim = new DimService( (dimserver + "/lis3dhx19").c_str(), "D:9;I:4", &lis3dhx19data, sizeof( lis3dhx19data ) );
   }
   else
   {
@@ -814,7 +814,7 @@ int main()
   double gx = 0, gy = 0, gz = 0;
   double gxmin = 0, gymin = 0, gzmin = 0;
   double gxmax = 0, gymax = 0, gzmax = 0;
-  double adc1 = 0, adc2 = 0, adc3 = 0;
+  int adc1 = 0, adc2 = 0, adc3 = 0;
   uint8_t samples = 0;
   int16_t *fifoX = new int16_t[ 32 ]; 
   int16_t *fifoY = new int16_t[ 32 ]; 
@@ -1136,7 +1136,7 @@ int main()
               adc2 = lis3dh[ i ]->GetAdc2();
               adc3 = lis3dh[ i ]->GetAdc3();
 
-              fprintf(stderr, SD_INFO "%s adc1 = %f, adc2 = %f, adc3 = %f\n", lis3dh[ i ]->GetName().c_str(), adc1, adc2, adc3);
+              fprintf(stderr, SD_INFO "%s adc1 = %d, adc2 = %d, adc3 = %d\n", lis3dh[ i ]->GetName().c_str(), adc1, adc2, adc3);
 
               lis3dh_adc1_file[ i ]->Write( adc1 );
               lis3dh_adc2_file[ i ]->Write( adc2 );
@@ -1155,13 +1155,13 @@ int main()
             dbl_array[ 7 ] = gz;
             dbl_array[ 8 ] = gzmax;
 
-	    dbl_array[ 9 ] = adc1;
-            dbl_array[ 10 ] = adc2;
-            dbl_array[ 11 ] = adc3;
+	    int_array[ 0 ] = adc1;
+            int_array[ 1 ] = adc2;
+            int_array[ 2 ] = adc3;
 
-	    int_array[ 0 ] = ODR;
+	    int_array[ 3 ] = ODR;
 
-            lis3dh_db->Insert(lis3dh[ i ]->GetName(), 12, dbl_array, 1, int_array, sqlite_err);
+            lis3dh_db->Insert(lis3dh[ i ]->GetName(), 9, dbl_array, 4, int_array, sqlite_err);
             if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
 
 #ifdef USE_DIM_LIBS

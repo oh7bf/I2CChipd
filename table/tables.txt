@@ -44,9 +44,9 @@ gymax real,
 gzmin real,
 gz real,
 gzmax real,
-adc1 real,
-adc2 real,
-adc3 real,
+adc1 integer,
+adc2 integer,
+adc3 integer,
 odr integer 
 );
 
