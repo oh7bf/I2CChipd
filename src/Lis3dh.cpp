@@ -1373,10 +1373,10 @@ void Lis3dh::SetActDuration(uint8_t Dur)
 }
 
 /// Self-test procedure. Return true if success.
-bool Lis3dh::SelfTest()
-{
-  return false;
-}
+//bool Lis3dh::SelfTest()
+//{
+//  return false;
+//}
 
 /// Read chip OUT_X_L, OUT_X_H, OUT_Y_L, OUT_Y_H, OUT_Z_L and OUT_Z_H registers and return true if success.
 bool Lis3dh::Readg()
@@ -1433,12 +1433,9 @@ bool Lis3dh::ReadAdc()
     }
     else
     {
-      Adc1  = (uint16_t)buffer[ 0 ];
-      Adc1 |= (uint16_t)(buffer[ 1 ] << 8);
-      Adc2  = (uint16_t)buffer[ 2 ];
-      Adc2 |= (uint16_t)(buffer[ 3 ] << 8);
-      Adc3  = (uint16_t)buffer[ 4 ];
-      Adc3 |= (uint16_t)(buffer[ 5 ] << 8);
+      Adc1 = (int16_t)( buffer[ 0 ] | ( buffer[ 1 ] << 8 ) );
+      Adc2 = (int16_t)( buffer[ 2 ] | ( buffer[ 3 ] << 8 ) );
+      Adc3 = (int16_t)( buffer[ 4 ] | ( buffer[ 5 ] << 8 ) );
     }
   }
 

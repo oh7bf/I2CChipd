@@ -20,8 +20,7 @@
  ****************************************************************************
  *
  * Fri Feb 25 16:10:43 CST 2022
- * Edit:
- *
+ * Edit: Sat Apr 23 14:50:42 CDT 2022
  *
  * Jaakko Koivuniemi
  **/
@@ -99,9 +98,9 @@ class Lis3dh : public I2Chip
     int16_t FifoZ[ 32 ]; ///< last FIFO reading from OUT_Z_L and OUT_Z_H
     int NFifo = 0; /// FIFO length in array
 
-    uint16_t Adc1 = 0; ///< last reading from OUT_ADC1_L and OUT_ADC1_H
-    uint16_t Adc2 = 0; ///< last reading from OUT_ADC2_L and OUT_ADC2_H
-    uint16_t Adc3 = 0; ///< last reading from OUT_ADC3_L and OUT_ADC3_H
+    int16_t Adc1 = 0; ///< last reading from OUT_ADC1_L and OUT_ADC1_H
+    int16_t Adc2 = 0; ///< last reading from OUT_ADC2_L and OUT_ADC2_H
+    int16_t Adc3 = 0; ///< last reading from OUT_ADC3_L and OUT_ADC3_H
 
     int FS = 2;    ///< Full-scale 2, 4, 8 or 16 g last setting  
     int So = 4; ///< Operation mode sensitivity [mg/digit] last setting  
@@ -158,13 +157,13 @@ class Lis3dh : public I2Chip
     int16_t GetOutZ() { return outZ; }
 
     /// Get ADC1 from last reading. 
-    uint16_t GetAdc1() { return Adc1; }
+    int16_t GetAdc1() { return Adc1; }
 
     /// Get ADC2 from last reading. 
-    uint16_t GetAdc2() { return Adc2; }
+    int16_t GetAdc2() { return Adc2; }
 
     /// Get ADC3 from last reading. 
-    uint16_t GetAdc3() { return Adc3; }
+    int16_t GetAdc3() { return Adc3; }
 
     /// Get OUT_X FIFO from last reading.
     int16_t * GetFifoX() { return FifoX; }
@@ -526,8 +525,8 @@ class Lis3dh : public I2Chip
     /// Set activity duration 0 - 255.
     void SetActDuration(uint8_t Dur);
 
-    /// Self-test procedure. Return true if success.
-    bool SelfTest();
+//    /// Self-test procedure. Return true if success.
+//    bool SelfTest();
 };
 
 #endif
