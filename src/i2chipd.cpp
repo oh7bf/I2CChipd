@@ -703,8 +703,8 @@ int main()
         lis3dh[ i ]->YEnable();
         lis3dh[ i ]->ZEnable();
 
-        fprintf(stderr, SD_INFO "Set data rate 10 Hz\n");
-        lis3dh[ i ]->SetDataRate( 2 );
+        fprintf(stderr, SD_INFO "Set data rate 25 Hz\n");
+        lis3dh[ i ]->SetDataRate( 3 );
 
         fprintf(stderr, SD_INFO "Set block data update\n");
         lis3dh[ i ]->BlockDataEnable();
@@ -1032,9 +1032,9 @@ int main()
     {
       if( lis3dh[ i ] )
       {
-        lis3dh[ i ]->Boot();
-        lis3dh[ i ]->BlockDataEnable();
-        lis3dh[ i ]->NormalMode();
+//        lis3dh[ i ]->Boot();
+//        lis3dh[ i ]->BlockDataEnable();
+//        lis3dh[ i ]->NormalMode();
 
         j = 0;
         while( !lis3dh[ i ]->NewDataXYZ() && j < 2000 )
@@ -1043,13 +1043,8 @@ int main()
           j++;
         }
     
-        if( lis3dh[ i ]->NewDataXYZ() )
+        if( j < 2000 )
         {
-//          if( lis3dh[ i ]->OverRunXYZ() )
-//          {
-//            fprintf(stderr, SD_NOTICE "%s reading overrun\n", lis3dh[ i ]->GetName().c_str());
-//          }
-
 	  if( lis3dh[ i ]->Readg() )
           {
              gx = lis3dh[ i ]->Getgx();
@@ -1108,17 +1103,16 @@ int main()
 	     }
 #endif
 	  }
-           else
-           {
-             fprintf(stderr, SD_NOTICE "%s error reading g-force %d\n", lis3dh[ i ]->GetName().c_str(), lis3dh[ i ]->GetError() );
-           }
+          else
+          {
+            fprintf(stderr, SD_NOTICE "%s error reading g-force %d\n", lis3dh[ i ]->GetName().c_str(), lis3dh[ i ]->GetError() );
+          }
         }
         else
         {
           fprintf(stderr, SD_NOTICE "%s reading timeout\n", lis3dh[ i ]->GetName().c_str());
         }
 
-//	lis3dh[ i ]->SetDataRate( 0 );
       }	
     }
     
