@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Mon 02 May 2022 08:22:11 PM CDT
- * Edit: 
+ * Edit: Sat 14 May 2022 07:51:01 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -94,6 +94,33 @@ int main(int argc, char **argv)
       else
       {
         cout << "-- failed to read ambient light\n";
+      }
+    }
+    else
+    {
+      cout << "-- timeout while reading chip\n";
+    }
+
+    usleep( 10000 );
+    chip->UltravioletMode();
+//    chip->LightEnable();
+
+    i = 0;
+    while( !chip->NewData() && i < 200 )
+    {
+      usleep( 10000 );
+    }
+
+    if( i < 200 )
+    {
+      if( chip->ReadUltraviolet() )
+      {
+        cout << "-- UVI = " << chip->GetUVI();
+        cout << " with latency " << 10*i << " ms\n";
+      }
+      else
+      {
+        cout << "-- failed to read UVI light\n";
       }
     }
     else

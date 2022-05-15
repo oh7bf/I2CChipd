@@ -67,6 +67,8 @@ class Ltr390uv : public I2Chip
 
     uint32_t AlsData = 0;   ///< Ambient light data.
     uint32_t UviData = 0;   ///< Ultra-violet light data.
+    uint32_t ThrsLow = 0;   ///< UVS/ALS interrupt lower threshold.
+    uint32_t ThrsUpper = 0;   ///< UVS/ALS interrupt upper threshold.
 
     uint8_t AlsGain = 3;    ///< ALS gain last setting.
     double IntTime = 1.0;   ///< Integration time.
@@ -103,7 +105,7 @@ class Ltr390uv : public I2Chip
     /// Get raw ambien light value from last reading. 
     uint32_t GetAlsData() { return AlsData; }
 
-    /// Get ultra-violet light value in lux from last reading. 
+    /// Get ultra-violet index from last reading. 
     double GetUVI() { return UVI; }
 
     /// Get raw ultra-violet value from last reading. 
@@ -114,6 +116,12 @@ class Ltr390uv : public I2Chip
 
     /// Set chip device file name.
     void SetDevice(std::string i2cdev) { this->i2cdev = i2cdev; }
+
+    /// Get UVS/ALS interrupt lower threshold.
+    uint32_t GetThrsLow() { return ThrsLow; }
+
+    /// Get UVS/ALS interrupt upper threshold.
+    uint32_t GetThrsUpper() { return ThrsUpper; }
 
     /// Reset.
     void Reset();
@@ -187,16 +195,16 @@ class Ltr390uv : public I2Chip
     /// Set interrupt persists 0 - 15.
     void SetIntPersist(uint8_t IntPersist);
 
-    /// Get threshold lower value.
-    uint32_t GetThrsLow();
+    /// Read interrupt threshold lower value.
+    bool ReadThrsLow();
 
-    /// Set threshold lower value.
+    /// Set interrupt threshold lower value.
     void SetThrsLow(uint32_t ThrsLow);
 
-    /// Get threshold upper value.
-    uint32_t GetThrsUp();
+    /// Read interrupt threshold upper value.
+    bool ReadThrsUp();
 
-    /// Set threshold upper value.
+    /// Set interrupt threshold upper value.
     void SetThrsUp(uint32_t ThrsUp);
 };
 

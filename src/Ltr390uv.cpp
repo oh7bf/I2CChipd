@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Sun 01 May 2022 06:41:35 PM CDT
- * Edit: 
+ * Edit: Sat 14 May 2022 02:19:35 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -403,51 +403,230 @@ bool Ltr390uv::ReadUltraviolet()
 /// Set bits [5:4] to 01 in INT_CFG register.
 void Ltr390uv::IntAmbientLight()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LTR390UV_INT_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x14;
+  reg |= 0x10;
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_INT_CFG, reg, address, buffer, error);
 }
 
 /// Set bits [5:4] to 11 in INT_CFG register.
 void Ltr390uv::IntUltraviolet()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LTR390UV_INT_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x34;
+  reg |= 0x30;
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_INT_CFG, reg, address, buffer, error);
 }
 
 /// Set bit 2 in INT_CFG register.
 void Ltr390uv::IntEnable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LTR390UV_INT_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg |= 0x04;
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_INT_CFG, reg, address, buffer, error);
 }
 
 /// Clear bit 2 in INT_CFG register.
 void Ltr390uv::IntDisable()
 {
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LTR390UV_INT_CFG, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+  reg &= 0x30;
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_INT_CFG, reg, address, buffer, error);
 }
 
-/// Read bits [7:4] from INT Persist register.
+/// Read bits [7:4] from INT_PTS register.
 uint8_t Ltr390uv::GetIntPersist()
 {
-  return 0;
+  uint8_t reg = 0;
+
+  I2Chip::I2cWriteUInt8(LTR390UV_INT_PTS, address, buffer, error);
+  reg = I2Chip::I2cReadUInt8(address, buffer, error);
+
+  return ( reg >> 4 );
 }
 
-/// Set bits [7:4] in INT Persist register.
+/// Set bits [7:4] in INT_PTS register.
 void Ltr390uv::SetIntPersist(uint8_t IntPersist)
 {
+  IntPersist &= 0x0F;
+  IntPersist = IntPersist << 4;
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_INT_PTS, IntPersist, address, buffer, error);
 }
 
-/// Read registers UVS/ALS_THRES_LOW_0, UVS/ALS_THRES_LOW_1 and UVS/ALS_THRES_LOW_2.
-uint32_t Ltr390uv::GetThrsLow()
+/// Read registers ALS_UVS_THRES_LOW_0, ALS_UVS_THRES_LOW_1 and ALS_UVS_THRES_LOW_2.
+bool Ltr390uv::ReadThrsLow()
 {
+  bool success = true;
+  uint8_t reg = 0;
+  uint32_t data = 0;
+
+  I2Chip::I2cWriteUInt8(LTR390UV_ALS_UVS_THRES_LOW_0, address, buffer, error);
+
+  if( error != 0 )
+  {
+    success = false;
+  }
+  else
+  {
+    reg = I2Chip::I2cReadUInt8(address, buffer, error);
+
+    if( error != 0 )
+    {
+      success = false;
+    }
+    else
+    {
+      data = (uint32_t)reg;
+
+      I2Chip::I2cWriteUInt8(LTR390UV_ALS_UVS_THRES_LOW_1, address, buffer, error);
+
+      if( error != 0 )
+      {
+        success = false;
+      }
+      else
+      {
+        reg = I2Chip::I2cReadUInt8(address, buffer, error);
+    
+        if( error != 0 )
+        {
+          success = false;
+	}
+        else
+        {
+          data |= ( (uint32_t)reg ) << 8;
+  
+          I2Chip::I2cWriteUInt8(LTR390UV_ALS_UVS_THRES_LOW_2, address, buffer, error);
+          if( error != 0 )
+          {
+            success = false;
+          }
+          else
+          {
+            reg = I2Chip::I2cReadUInt8(address, buffer, error);
+
+	    data |= ( (uint32_t)reg ) << 16;
+            ThrsLow = data;
+	  }
+	}
+      }
+    }
+  }
+  
+  return success;
 }
 
-/// Write registers UVS/ALS_THRES_LOW_0, UVS/ALS_THRES_LOW_1 and UVS/ALS_THRES_LOW_2.
+/// Write registers ALS_UVS_THRES_LOW_0, ALS_UVS_THRES_LOW_1 and ALS_UVS_THRES_LOW_2.
 void Ltr390uv::SetThrsLow(uint32_t ThrsLow)
 {
+  uint8_t reg = (uint8_t)( ThrsLow & 0xFF );
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_ALS_UVS_THRES_LOW_0, reg, address, buffer, error);
+
+  reg = (uint8_t)( ( ThrsLow & 0xFF00 ) >> 8 );
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_ALS_UVS_THRES_LOW_1, reg, address, buffer, error);
+
+  reg = (uint8_t)( ( ThrsLow & 0xF0000 ) >> 16 );
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_ALS_UVS_THRES_LOW_2, reg, address, buffer, error);
 }
 
-/// Read registers UVS/ALS_THRES_UP_0, UVS/ALS_THRES_UP_1 and UVS/ALS_THRES_UP_2.
-uint32_t Ltr390uv::GetThrsUp()
+/// Read registers ALS_UVS_THRES_UP_0, ALS_UVS_THRES_UP_1 and ALS_UVS_THRES_UP_2.
+bool Ltr390uv::ReadThrsUp()
 {
+  bool success = true;
+  uint8_t reg = 0;
+  uint32_t data = 0;
+
+  I2Chip::I2cWriteUInt8(LTR390UV_ALS_UVS_THRES_UP_0, address, buffer, error);
+
+  if( error != 0 )
+  {
+    success = false;
+  }
+  else
+  {
+    reg = I2Chip::I2cReadUInt8(address, buffer, error);
+
+    if( error != 0 )
+    {
+      success = false;
+    }
+    else
+    {
+      data = (uint32_t)reg;
+
+      I2Chip::I2cWriteUInt8(LTR390UV_ALS_UVS_THRES_UP_1, address, buffer, error);
+
+      if( error != 0 )
+      {
+        success = false;
+      }
+      else
+      {
+        reg = I2Chip::I2cReadUInt8(address, buffer, error);
+    
+        if( error != 0 )
+        {
+          success = false;
+	}
+        else
+        {
+          data |= ( (uint32_t)reg ) << 8;
+  
+          I2Chip::I2cWriteUInt8(LTR390UV_ALS_UVS_THRES_UP_2, address, buffer, error);
+          if( error != 0 )
+          {
+            success = false;
+          }
+          else
+          {
+            reg = I2Chip::I2cReadUInt8(address, buffer, error);
+    
+	    data |= ( (uint32_t)reg ) << 16;
+            ThrsUpper = data;
+	  }
+	}
+      }
+    }
+  }
+  
+  return success;
 }
 
-/// Write registers UVS/ALS_THRES_UP_0, UVS/ALS_THRES_UP_1 and UVS/ALS_THRES_UP_2.
+      
+
+/// Write registers ALS_UVS_THRES_UP_0, ALS_UVS_THRES_UP_1 and ALS_UVS_THRES_UP_2.
 void Ltr390uv::SetThrsUp(uint32_t ThrsUp)
 {
+  uint8_t reg = (uint8_t)( ThrsUp & 0xFF );
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_ALS_UVS_THRES_UP_0, reg, address, buffer, error);
+
+  reg = (uint8_t)( ( ThrsUp & 0xFF00 ) >> 8 );
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_ALS_UVS_THRES_UP_1, reg, address, buffer, error);
+
+  reg = (uint8_t)( ( ThrsUp & 0xF0000 ) >> 16 );
+
+  I2Chip::I2cWriteRegisterUInt8(LTR390UV_ALS_UVS_THRES_UP_2, reg, address, buffer, error);
 }
 
