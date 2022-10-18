@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Sun Apr 24 16:54:14 CDT 2022
+ * Edit: Mon 17 Oct 2022 07:26:05 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -61,11 +61,19 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20220424; // program version
+  const int version = 20221017; // program version
   
   string i2cdev = "/dev/i2c-1";
+
   string spidev00 = "/dev/spidev0.0";
   string spidev01 = "/dev/spidev0.1";
+  string spidev02 = "/dev/spidev0.2";
+  string spidev03 = "/dev/spidev0.3";
+  string spidev04 = "/dev/spidev0.4";
+  string spidev05 = "/dev/spidev0.5";
+  string spidev06 = "/dev/spidev0.6";
+  string spidev07 = "/dev/spidev0.7";
+
   string datadir = "/tmp/";
   string sqlitedb = "/var/lib/i2chipd/i2chipd.db";
   string dimserver = "";
@@ -100,6 +108,9 @@ int main()
   bool lis3mdlx1C = false, lis3mdlx1E = false;
   bool lis3dhx18 = false, lis3dhx19 = false;
   bool max31865_00 = false, max31865_01 = false;
+  bool max31865_02 = false, max31865_03 = false;
+  bool max31865_04 = false, max31865_05 = false;
+  bool max31865_06 = false, max31865_07 = false;
 
   std::size_t pos;
   std::string line ("");
@@ -134,8 +145,14 @@ int main()
           if( line.find("LIS2MDL_x1E") != std::string::npos ) lis2mdlx1E = true;
           if( line.find("LIS3MDL_x1C") != std::string::npos ) lis3mdlx1C = true;
           if( line.find("LIS3MDL_x1E") != std::string::npos ) lis3mdlx1E = true;
-	  if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
+          if( line.find("MAX31865_00") != std::string::npos ) max31865_00 = true;
           if( line.find("MAX31865_01") != std::string::npos ) max31865_01 = true;
+          if( line.find("MAX31865_02") != std::string::npos ) max31865_02 = true;
+          if( line.find("MAX31865_03") != std::string::npos ) max31865_03 = true;
+          if( line.find("MAX31865_04") != std::string::npos ) max31865_04 = true;
+          if( line.find("MAX31865_05") != std::string::npos ) max31865_05 = true;
+          if( line.find("MAX31865_06") != std::string::npos ) max31865_06 = true;
+          if( line.find("MAX31865_07") != std::string::npos ) max31865_07 = true;
 
           pos = line.find("READINT");
           if( pos != std::string::npos ) 
@@ -200,11 +217,23 @@ int main()
   if( lis3dhx18 ) lis3dh[ 0 ] = new Lis3dh("g1", i2cdev); else lis3dh[ 0 ] = nullptr;
   if( lis3dhx19 ) lis3dh[ 1 ] = new Lis3dh("g2", i2cdev); else lis3dh[ 1 ] = nullptr;
 
-  Max31865 *max31865[ 2 ];
+  Max31865 *max31865[ 8 ];
   if( max31865_00 ) max31865[ 0 ] = new Max31865("TDR1", spidev00, 500000, 430);
   else max31865[ 0 ] = nullptr;
   if( max31865_01 ) max31865[ 1 ] = new Max31865("TDR2", spidev01, 500000, 430);
   else max31865[ 1 ] = nullptr;
+  if( max31865_02 ) max31865[ 2 ] = new Max31865("TDR3", spidev02, 500000, 430);
+  else max31865[ 2 ] = nullptr;
+  if( max31865_03 ) max31865[ 3 ] = new Max31865("TDR4", spidev03, 500000, 430);
+  else max31865[ 3 ] = nullptr;
+  if( max31865_04 ) max31865[ 4 ] = new Max31865("TDR5", spidev04, 500000, 430);
+  else max31865[ 4 ] = nullptr;
+  if( max31865_05 ) max31865[ 5 ] = new Max31865("TDR6", spidev05, 500000, 430);
+  else max31865[ 5 ] = nullptr;
+  if( max31865_06 ) max31865[ 6 ] = new Max31865("TDR7", spidev06, 500000, 430);
+  else max31865[ 6 ] = nullptr;
+  if( max31865_07 ) max31865[ 7 ] = new Max31865("TDR8", spidev07, 500000, 430);
+  else max31865[ 7 ] = nullptr;
 
   // data files to write most recent value
   File *tmp102_file[ 4 ];
@@ -268,13 +297,34 @@ int main()
   lis3mdl_T_file[ 0 ] = new File(datadir, "lis3mdl_x1C_T");
   lis3mdl_T_file[ 1 ] = new File(datadir, "lis3mdl_x1E_T");
 
-  File *max31865_T_file[ 2 ], *max31865_R_file[ 2 ], *max31865_F_file[ 2 ];
+  File *max31865_T_file[ 8 ], *max31865_R_file[ 8 ], *max31865_F_file[ 8 ];
   max31865_T_file[ 0 ] = new File(datadir, "max31865_00_T");
   max31865_T_file[ 1 ] = new File(datadir, "max31865_01_T");
   max31865_R_file[ 0 ] = new File(datadir, "max31865_00_R");
   max31865_R_file[ 1 ] = new File(datadir, "max31865_01_R");
   max31865_F_file[ 0 ] = new File(datadir, "max31865_00_F");
   max31865_F_file[ 1 ] = new File(datadir, "max31865_01_F");
+
+  max31865_T_file[ 2 ] = new File(datadir, "max31865_02_T");
+  max31865_T_file[ 3 ] = new File(datadir, "max31865_03_T");
+  max31865_R_file[ 2 ] = new File(datadir, "max31865_02_R");
+  max31865_R_file[ 3 ] = new File(datadir, "max31865_03_R");
+  max31865_F_file[ 2 ] = new File(datadir, "max31865_02_F");
+  max31865_F_file[ 3 ] = new File(datadir, "max31865_03_F");
+
+  max31865_T_file[ 4 ] = new File(datadir, "max31865_04_T");
+  max31865_T_file[ 5 ] = new File(datadir, "max31865_05_T");
+  max31865_R_file[ 4 ] = new File(datadir, "max31865_04_R");
+  max31865_R_file[ 5 ] = new File(datadir, "max31865_05_R");
+  max31865_F_file[ 4 ] = new File(datadir, "max31865_04_F");
+  max31865_F_file[ 5 ] = new File(datadir, "max31865_05_F");
+
+  max31865_T_file[ 6 ] = new File(datadir, "max31865_06_T");
+  max31865_T_file[ 7 ] = new File(datadir, "max31865_07_T");
+  max31865_R_file[ 6 ] = new File(datadir, "max31865_06_R");
+  max31865_R_file[ 7 ] = new File(datadir, "max31865_07_R");
+  max31865_F_file[ 6 ] = new File(datadir, "max31865_06_F");
+  max31865_F_file[ 7 ] = new File(datadir, "max31865_07_F");
 
   // SQLite objects to store values in database table
   SQLite *tmp102_db  = new SQLite(sqlitedb, "tmp102", "insert into tmp102 (name,temperature) values (?,?)");
@@ -375,8 +425,8 @@ int main()
     int F = 0;
   };
 
-  max31865d max31865d00data, max31865d01data;
-  DimService *max31865d00Dim, *max31865d01Dim;
+  max31865d max31865d00data, max31865d01data, max31865d02data, max31865d03data, max31865d04data, max31865d05data, max31865d06data, max31865d07data;
+  DimService *max31865d00Dim, *max31865d01Dim, *max31865d02Dim, *max31865d03Dim, *max31865d04Dim, *max31865d05Dim, *max31865d06Dim, *max31865d07Dim;
 
   struct tmp102d
   {
@@ -524,6 +574,66 @@ int main()
   else
   {
     max31865d01Dim = nullptr;
+  }
+
+  if( max31865_02 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service max31865d02\n");
+    max31865d02Dim = new DimService( (dimserver + "/max31865d02").c_str(), "D:2;I:1", &max31865d02data, sizeof( max31865d02data ) );
+  }
+  else
+  {
+    max31865d02Dim = nullptr;
+  }
+
+  if( max31865_03 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service max31865d03\n");
+    max31865d03Dim = new DimService( (dimserver + "/max31865d03").c_str(), "D:2;I:1", &max31865d03data, sizeof( max31865d03data ) );
+  }
+  else
+  {
+    max31865d03Dim = nullptr;
+  }
+
+  if( max31865_04 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service max31865d04\n");
+    max31865d04Dim = new DimService( (dimserver + "/max31865d04").c_str(), "D:2;I:1", &max31865d04data, sizeof( max31865d04data ) );
+  }
+  else
+  {
+    max31865d04Dim = nullptr;
+  }
+
+  if( max31865_05 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service max31865d05\n");
+    max31865d05Dim = new DimService( (dimserver + "/max31865d05").c_str(), "D:2;I:1", &max31865d05data, sizeof( max31865d05data ) );
+  }
+  else
+  {
+    max31865d05Dim = nullptr;
+  }
+
+  if( max31865_06 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service max31865d06\n");
+    max31865d06Dim = new DimService( (dimserver + "/max31865d06").c_str(), "D:2;I:1", &max31865d06data, sizeof( max31865d06data ) );
+  }
+  else
+  {
+    max31865d06Dim = nullptr;
+  }
+
+  if( max31865_07 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service max31865d07\n");
+    max31865d07Dim = new DimService( (dimserver + "/max31865d07").c_str(), "D:2;I:1", &max31865d07data, sizeof( max31865d07data ) );
+  }
+  else
+  {
+    max31865d07Dim = nullptr;
   }
 
   if( tmp102x48 )
@@ -795,7 +905,7 @@ int main()
     }
   }    
 
-  for( int i = 0; i < 2; i++)
+  for( int i = 0; i < 8; i++)
   {
     if( max31865[ i ] )
     {
@@ -1362,7 +1472,7 @@ int main()
       }
     }
 
-    for(int i = 0; i < 2; i++)
+    for(int i = 0; i < 8; i++)
     {
       if( max31865[ i ] )
       {
@@ -1405,12 +1515,54 @@ int main()
             max31865d00data.F = F;
             max31865d00Dim->updateService();
 	  }
-          else
+          else if( i == 1 )
 	  {
             max31865d01data.T = T;
             max31865d01data.R = R;
             max31865d01data.F = F;
             max31865d01Dim->updateService();
+	  }
+          else if( i == 2 )
+	  {
+            max31865d02data.T = T;
+            max31865d02data.R = R;
+            max31865d02data.F = F;
+            max31865d02Dim->updateService();
+	  }
+          else if( i == 3 )
+	  {
+            max31865d03data.T = T;
+            max31865d03data.R = R;
+            max31865d03data.F = F;
+            max31865d03Dim->updateService();
+	  }
+          else if( i == 4 )
+	  {
+            max31865d04data.T = T;
+            max31865d04data.R = R;
+            max31865d04data.F = F;
+            max31865d04Dim->updateService();
+	  }
+          else if( i == 5 )
+	  {
+            max31865d05data.T = T;
+            max31865d05data.R = R;
+            max31865d05data.F = F;
+            max31865d05Dim->updateService();
+	  }
+          else if( i == 6 )
+	  {
+            max31865d06data.T = T;
+            max31865d06data.R = R;
+            max31865d06data.F = F;
+            max31865d06Dim->updateService();
+	  }
+          else if( i == 7 )
+	  {
+            max31865d07data.T = T;
+            max31865d07data.R = R;
+            max31865d07data.F = F;
+            max31865d07Dim->updateService();
 	  }
 	}
 #endif
