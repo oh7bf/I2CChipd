@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri 31 Jul 2020 05:15:43 PM CDT
- * Edit: 
+ * Edit: Mon 17 Oct 2022 05:12:34 PM CDT
  *
  * Jaakko Koivuniemi
  **/
@@ -76,6 +76,8 @@ int main(int argc, char **argv)
 
   chip->ReadResistance();
   chip->CalcTemperature();
+  cout << "R = " << chip->GetResistance();
+  cout << " ohm  ";
   cout << "T = " << chip->GetTemperature();
   cout << " C";
 
