@@ -104,6 +104,116 @@ std::string SQLite::GetDateTime(int & error)
 }
 
 /// SQLite member function to open connection and execute insert statement on database table.
+bool SQLite::Insert(std::string name, int N, int *data, int & error)
+{
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+
+  char message[ 500 ] = "";
+
+  sprintf(message, "Open database: %s\n", file.c_str() );
+  fprintf(stderr, SD_DEBUG "%s", message);
+
+  int rc = sqlite3_open_v2(file.c_str(), &db, SQLITE_OPEN_READWRITE, NULL);
+
+  if( rc != SQLITE_OK )
+  {
+    sprintf(message, "Can not open database: %s\n", sqlite3_errmsg( db ) );
+    fprintf(stderr, SD_ERR "%s", message);
+    error = rc;
+    sqlite3_close( db );
+
+    return false;
+  }
+
+  int i, j;
+
+  sprintf(message, "Prepare statement: %s\n", insert_stmt.c_str() );
+  fprintf(stderr, SD_DEBUG "%s", message);
+
+  rc = sqlite3_prepare_v2(db, insert_stmt.c_str(), 200, &stmt, 0);
+
+  if( rc != SQLITE_OK )
+  {
+    sprintf(message, "Statement prepare failed: %s\n", sqlite3_errmsg( db ) );
+    fprintf(stderr, SD_ERR "%s", message);
+    error = rc;
+    sqlite3_close( db );
+  
+    return false;
+  }
+  else
+  {
+    sprintf(message, "Bind text: %s\n", name.c_str() );
+    fprintf(stderr, SD_DEBUG "%s", message);
+
+    rc = sqlite3_bind_text(stmt, 1, name.c_str(), name.length(), SQLITE_STATIC);
+
+    if( rc != SQLITE_OK )
+    {
+      sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
+      fprintf(stderr, SD_ERR "%s", message);
+      error = rc;
+
+      rc = sqlite3_finalize( stmt );
+      sqlite3_close( db );
+      
+      return false;
+    }
+    else
+    {
+      for( i = 1; i <= N; i++)
+      {
+        sprintf(message, "Bind integer %d to position %d\n", data[ i - 1], i+1 );
+        fprintf(stderr, SD_DEBUG "%s", message);
+
+      	rc = sqlite3_bind_int(stmt, i + 1, data[ i - 1 ]);
+	
+    	if( rc != SQLITE_OK )
+        {
+          sprintf(message, "Binding failed: %s\n", sqlite3_errmsg( db ) );
+          fprintf(stderr, SD_ERR "%s", message);
+          error = rc;
+	
+          rc = sqlite3_finalize( stmt );
+          sqlite3_close( db );
+        } 
+      }
+    }
+  }     
+
+  rc = sqlite3_step( stmt );
+
+  if( rc == SQLITE_BUSY )
+  {
+    j = 0;
+    while( rc == SQLITE_BUSY && j < 10 )
+    {
+      fprintf(stderr, SD_WARNING "SQLite database busy, wait 1 s.\n");
+      sleep( 1 ); // sleep 1 s
+      rc = sqlite3_step( stmt );
+    }
+  }
+
+  if( rc != SQLITE_DONE )
+  {
+    sprintf(message, "Statement failed: %s\n", sqlite3_errmsg( db ) );
+    fprintf(stderr, SD_ERR "%s", message);
+    error = rc;
+  
+    rc = sqlite3_finalize( stmt );
+    sqlite3_close( db );
+
+    return false;
+  } 
+    
+  rc = sqlite3_finalize( stmt );
+  sqlite3_close( db );
+
+  return true;
+}
+    
+/// SQLite member function to open connection and execute insert statement on database table.
 bool SQLite::Insert(std::string name, int N, double *data, int & error)
 {
   sqlite3 *db;

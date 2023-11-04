@@ -12,8 +12,8 @@
 
 I2CHIPD       = i2chipd
 #I2CHIPD       = i2chipd_dim
-#INCDIM        = /home/me/dim_v20r32/dim
-#LIBDIM        = /home/me/dim_v20r32/linux
+#INCDIM        = /home/me/dim_v20r35/dim
+#LIBDIM        = /home/me/dim_v20r35/linux
 
 CXX           = g++
 CXXFLAGS      = -g -O2 -Wall -Wextra -std=c++11 
@@ -33,6 +33,7 @@ MODULES      += Lis3mdl.o
 MODULES      += Lis3dh.o
 MODULES      += Lis2mdl.o
 MODULES      += Ltr390uv.o
+MODULES      += Pca9535.o
 MODULES      += File.o
 MODULES      += SQLite.o
 MODULES      += i2chipd.o 
@@ -40,7 +41,7 @@ MODULES      += i2chipd.o
 %.o : %.cpp
 	$(CXX) -I$(INCDIM) $(CXXFLAGS) -c $<
 
-all: $(I2CHIPD) test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi test_lis3mdl test_lis3dh test_lis2mdl test_ltr390uv
+all: $(I2CHIPD) test_bmp280 test_bme680 test_tmp102 test_htu21d test_max31865 test_ads1015 test_bh1750fvi test_lis3mdl test_lis3dh test_lis2mdl test_ltr390uv test_pca9535
 
 i2chipd: $(MODULES) 
 	$(LD) $(LDFLAGS) $^ -lsqlite3 -o $@
@@ -79,6 +80,9 @@ test_lis2mdl: I2Chip.o Lis2mdl.o test_lis2mdl.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 test_ltr390uv: I2Chip.o Ltr390uv.o test_ltr390uv.o
+	$(LD) $(LDFLAGS) $^ -o $@
+
+test_pca9535: I2Chip.o Pca9535.o test_pca9535.o
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:

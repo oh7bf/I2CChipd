@@ -2,7 +2,7 @@
  * 
  * Read chips with I2C interface. 
  *       
- * Copyright (C) 2020 - 2022 Jaakko Koivuniemi.
+ * Copyright (C) 2020 - 2023 Jaakko Koivuniemi.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  ****************************************************************************
  *
  * Fri Jul  3 20:16:26 CDT 2020
- * Edit: Mon 17 Oct 2022 07:26:05 PM CDT
+ * Edit: Fri  3 Nov 17:22:47 CDT 2023
  *
  * Jaakko Koivuniemi
  **/
@@ -61,7 +61,7 @@ void reload(int sig)
 /// and includes different log levels defined in `sd-daemon.h`.
 int main()
 {
-  const int version = 20221017; // program version
+  const int version = 20231103; // program version
   
   string i2cdev = "/dev/i2c-1";
 
@@ -111,6 +111,10 @@ int main()
   bool max31865_02 = false, max31865_03 = false;
   bool max31865_04 = false, max31865_05 = false;
   bool max31865_06 = false, max31865_07 = false;
+  bool pca9535x20 = false, pca9535x21 = false;
+  bool pca9535x22 = false, pca9535x23 = false;
+  bool pca9535x24 = false, pca9535x25 = false;
+  bool pca9535x26 = false, pca9535x27 = false;
 
   std::size_t pos;
   std::string line ("");
@@ -153,6 +157,14 @@ int main()
           if( line.find("MAX31865_05") != std::string::npos ) max31865_05 = true;
           if( line.find("MAX31865_06") != std::string::npos ) max31865_06 = true;
           if( line.find("MAX31865_07") != std::string::npos ) max31865_07 = true;
+          if( line.find("PCA9535_x20") != std::string::npos ) pca9535x20 = true;
+          if( line.find("PCA9535_x21") != std::string::npos ) pca9535x21 = true;
+          if( line.find("PCA9535_x22") != std::string::npos ) pca9535x22 = true;
+          if( line.find("PCA9535_x23") != std::string::npos ) pca9535x23 = true;
+          if( line.find("PCA9535_x24") != std::string::npos ) pca9535x24 = true;
+          if( line.find("PCA9535_x25") != std::string::npos ) pca9535x25 = true;
+          if( line.find("PCA9535_x26") != std::string::npos ) pca9535x26 = true;
+          if( line.find("PCA9535_x27") != std::string::npos ) pca9535x27 = true;
 
           pos = line.find("READINT");
           if( pos != std::string::npos ) 
@@ -234,6 +246,17 @@ int main()
   else max31865[ 6 ] = nullptr;
   if( max31865_07 ) max31865[ 7 ] = new Max31865("TDR8", spidev07, 500000, 430);
   else max31865[ 7 ] = nullptr;
+
+  Pca9535 *pca9535[ 8 ];
+
+  if( pca9535x20 ) pca9535[ 0 ] = new Pca9535("IO1", i2cdev); else pca9535[ 0 ] = nullptr;
+  if( pca9535x21 ) pca9535[ 1 ] = new Pca9535("IO2", i2cdev); else pca9535[ 1 ] = nullptr;
+  if( pca9535x22 ) pca9535[ 2 ] = new Pca9535("IO3", i2cdev); else pca9535[ 2 ] = nullptr;
+  if( pca9535x23 ) pca9535[ 3 ] = new Pca9535("IO4", i2cdev); else pca9535[ 3 ] = nullptr;
+  if( pca9535x24 ) pca9535[ 4 ] = new Pca9535("IO5", i2cdev); else pca9535[ 4 ] = nullptr;
+  if( pca9535x25 ) pca9535[ 5 ] = new Pca9535("IO6", i2cdev); else pca9535[ 5 ] = nullptr;
+  if( pca9535x26 ) pca9535[ 6 ] = new Pca9535("IO7", i2cdev); else pca9535[ 6 ] = nullptr;
+  if( pca9535x27 ) pca9535[ 7 ] = new Pca9535("IO8", i2cdev); else pca9535[ 7 ] = nullptr;
 
   // data files to write most recent value
   File *tmp102_file[ 4 ];
@@ -326,6 +349,47 @@ int main()
   max31865_F_file[ 6 ] = new File(datadir, "max31865_06_F");
   max31865_F_file[ 7 ] = new File(datadir, "max31865_07_F");
 
+  File *pca9535_inputs_file[ 8 ], *pca9535_outputs_file[ 8 ], *pca9535_inversions_file[ 8 ], *pca9535_port_configs_file[ 8 ];
+  pca9535_inputs_file[ 0 ] = new File(datadir, "pca9535x20_inputs");
+  pca9535_outputs_file[ 0 ] = new File(datadir, "pca9535x20_outputs");
+  pca9535_inversions_file[ 0 ] = new File(datadir, "pca9535x20_inversions");
+  pca9535_port_configs_file[ 0 ] = new File(datadir, "pca9535x20_port_configs");
+
+  pca9535_inputs_file[ 1 ] = new File(datadir, "pca9535x21_inputs");
+  pca9535_outputs_file[ 1 ] = new File(datadir, "pca9535x21_outputs");
+  pca9535_inversions_file[ 1 ] = new File(datadir, "pca9535x21_inversions");
+  pca9535_port_configs_file[ 1 ] = new File(datadir, "pca9535x21_port_configs");
+
+  pca9535_inputs_file[ 2 ] = new File(datadir, "pca9535x22_inputs");
+  pca9535_outputs_file[ 2 ] = new File(datadir, "pca9535x22_outputs");
+  pca9535_inversions_file[ 2 ] = new File(datadir, "pca9535x22_inversions");
+  pca9535_port_configs_file[ 2 ] = new File(datadir, "pca9535x22_port_configs");
+
+  pca9535_inputs_file[ 3 ] = new File(datadir, "pca9535x23_inputs");
+  pca9535_outputs_file[ 3 ] = new File(datadir, "pca9535x23_outputs");
+  pca9535_inversions_file[ 3 ] = new File(datadir, "pca9535x23_inversions");
+  pca9535_port_configs_file[ 3 ] = new File(datadir, "pca9535x23_port_configs");
+
+  pca9535_inputs_file[ 4 ] = new File(datadir, "pca9535x24_inputs");
+  pca9535_outputs_file[ 4 ] = new File(datadir, "pca9535x24_outputs");
+  pca9535_inversions_file[ 4 ] = new File(datadir, "pca9535x24_inversions");
+  pca9535_port_configs_file[ 4 ] = new File(datadir, "pca9535x24_port_configs");
+
+  pca9535_inputs_file[ 5 ] = new File(datadir, "pca9535x25_inputs");
+  pca9535_outputs_file[ 5 ] = new File(datadir, "pca9535x25_outputs");
+  pca9535_inversions_file[ 5 ] = new File(datadir, "pca9535x25_inversions");
+  pca9535_port_configs_file[ 5 ] = new File(datadir, "pca9535x25_port_configs");
+
+  pca9535_inputs_file[ 6 ] = new File(datadir, "pca9535x26_inputs");
+  pca9535_outputs_file[ 6 ] = new File(datadir, "pca9535x26_outputs");
+  pca9535_inversions_file[ 6 ] = new File(datadir, "pca9535x26_inversions");
+  pca9535_port_configs_file[ 6 ] = new File(datadir, "pca9535x26_port_configs");
+
+  pca9535_inputs_file[ 7 ] = new File(datadir, "pca9535x27_inputs");
+  pca9535_outputs_file[ 7 ] = new File(datadir, "pca9535x27_outputs");
+  pca9535_inversions_file[ 7 ] = new File(datadir, "pca9535x27_inversions");
+  pca9535_port_configs_file[ 7 ] = new File(datadir, "pca9535x27_port_configs");
+
   // SQLite objects to store values in database table
   SQLite *tmp102_db  = new SQLite(sqlitedb, "tmp102", "insert into tmp102 (name,temperature) values (?,?)");
   SQLite *htu21d_db = new SQLite(sqlitedb, "htu21d", "insert into htu21d (name,temperature,humidity) values (?,?,?)");
@@ -336,6 +400,8 @@ int main()
   SQLite *lis2mdl_db  = new SQLite(sqlitedb, "lis2mdl", "insert into lis2mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *lis3mdl_db  = new SQLite(sqlitedb, "lis3mdl", "insert into lis3mdl(name,Bx,By,Bz,temperature) values (?,?,?,?,?)");
   SQLite *max31865_db  = new SQLite(sqlitedb, "max31865", "insert into max31865 (name,temperature,resistance,fault) values (?,?,?,?)");
+
+  SQLite *pca9535_db = new SQLite(sqlitedb, "pca9535", "insert into pca9535 (name,inputs,outputs,inversions,portconfigs) values (?,?,?,?,?)");
 
 // DIM services
 #ifdef USE_DIM_LIBS
@@ -435,6 +501,18 @@ int main()
 
   tmp102d tmp102x48data, tmp102x49data, tmp102x4Adata, tmp102x4Bdata;
   DimService *tmp102x48Dim, *tmp102x49Dim, *tmp102x4ADim, *tmp102x4BDim;
+
+  struct pca9535d
+  {
+    int inputs = 0;
+    int outputs = 0;
+    int inversions = 0;
+    int portconfigs = 0;
+  };
+
+  pca9535d pca9535x20data, pca9535x21data, pca9535x22data, pca9535x23data, pca9535x24data, pca9535x25data, pca9535x26data, pca9535x27data;
+  DimService *pca9535x20Dim, *pca9535x21Dim, *pca9535x22Dim, *pca9535x23Dim, *pca9535x24Dim, *pca9535x25Dim, *pca9535x26Dim, *pca9535x27Dim;
+
 
   if( bmp280x76 )
   {
@@ -674,6 +752,86 @@ int main()
   else
   {
     tmp102x4BDim = nullptr;
+  }
+
+  if( pca9535x20 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service pca9535x20\n");
+    pca9535x20Dim = new DimService( (dimserver + "/pca9535x20").c_str(), "I:4", &pca9535x20data, sizeof( pca9535x20data ) );
+  }
+  else
+  {
+    pca9535x20Dim = nullptr;
+  }
+
+  if( pca9535x21 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service pca9535x21\n");
+    pca9535x21Dim = new DimService( (dimserver + "/pca9535x21").c_str(), "I:4", &pca9535x21data, sizeof( pca9535x21data ) );
+  }
+  else
+  {
+    pca9535x21Dim = nullptr;
+  }
+
+  if( pca9535x22 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service pca9535x22\n");
+    pca9535x22Dim = new DimService( (dimserver + "/pca9535x22").c_str(), "I:4", &pca9535x22data, sizeof( pca9535x22data ) );
+  }
+  else
+  {
+    pca9535x22Dim = nullptr;
+  }
+
+  if( pca9535x23 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service pca9535x23\n");
+    pca9535x23Dim = new DimService( (dimserver + "/pca9535x23").c_str(), "I:4", &pca9535x23data, sizeof( pca9535x23data ) );
+  }
+  else
+  {
+    pca9535x23Dim = nullptr;
+  }
+
+  if( pca9535x24 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service pca9535x24\n");
+    pca9535x24Dim = new DimService( (dimserver + "/pca9535x24").c_str(), "I:4", &pca9535x24data, sizeof( pca9535x24data ) );
+  }
+  else
+  {
+    pca9535x24Dim = nullptr;
+  }
+
+  if( pca9535x25 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service pca9535x25\n");
+    pca9535x25Dim = new DimService( (dimserver + "/pca9535x25").c_str(), "I:4", &pca9535x25data, sizeof( pca9535x25data ) );
+  }
+  else
+  {
+    pca9535x25Dim = nullptr;
+  }
+
+  if( pca9535x26 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service pca9535x26\n");
+    pca9535x26Dim = new DimService( (dimserver + "/pca9535x26").c_str(), "I:4", &pca9535x26data, sizeof( pca9535x26data ) );
+  }
+  else
+  {
+    pca9535x26Dim = nullptr;
+  }
+
+  if( pca9535x27 )
+  {
+    fprintf(stderr, SD_DEBUG "Create DIM service pca9535x27\n");
+    pca9535x27Dim = new DimService( (dimserver + "/pca9535x27").c_str(), "I:4", &pca9535x27data, sizeof( pca9535x27data ) );
+  }
+  else
+  {
+    pca9535x27Dim = nullptr;
   }
 
   // start DIM server
@@ -919,6 +1077,16 @@ int main()
     }
   }
 
+  for( int i = 0; i < 8; i++)
+  {
+    if( pca9535[ i ] )
+    {
+      fprintf(stderr, SD_INFO "%s %s\n", pca9535[ i ]->GetName().c_str(), pca9535[ i ]->GetDevice().c_str() );
+      fprintf(stderr, SD_DEBUG "SQLite table: %s\n", pca9535_db->GetTable().c_str() );
+    }
+  }
+
+  int inputs = 0, outputs = 0, inversions = 0, portconfigs = 0;
   double T = 0, TF = 0, RH = 0, p = 0, R = 0, Ev = 0;
   double Bx = 0, By = 0, Bz = 0;
   double gx = 0, gy = 0, gz = 0;
@@ -1565,6 +1733,102 @@ int main()
             max31865d07Dim->updateService();
 	  }
 	}
+#endif
+      }
+    }
+
+    for(int i = 0; i < 8; i++)
+    {
+      if( pca9535[ i ] )
+      {
+        inputs = pca9535[ i ]->GetInputs();
+        outputs = pca9535[ i ]->GetOutputs();
+	inversions = pca9535[ i ]->GetPolInversions();
+	portconfigs = pca9535[ i ]->GetPortConfigs();
+
+        fprintf(stderr, SD_INFO "%s inputs = %d, outputs = %d, inversions = %d, portconfigs = %d\n", pca9535[ i ]->GetName().c_str(), inputs, outputs, inversions, portconfigs);
+
+        pca9535_inputs_file[ i ]->Write( inputs );
+        pca9535_outputs_file[ i ]->Write( outputs );
+        pca9535_inversions_file[ i ]->Write( inversions );
+        pca9535_port_configs_file[ i ]->Write( portconfigs );
+
+        int_array[ 0 ] = inputs;
+        int_array[ 1 ] = outputs;
+        int_array[ 2 ] = inversions;
+        int_array[ 3 ] = portconfigs;
+
+	pca9535_db->Insert(pca9535[ i ]->GetName(), 4, int_array, sqlite_err);
+        if( sqlite_err != SQLITE_OK ) fprintf(stderr, SD_ERR "error writing SQLite database: %d\n", sqlite_err);
+
+#ifdef USE_DIM_LIBS
+	if( dimruns )
+        {
+          if( i == 0 )
+          {
+            pca9535x20data.inputs = inputs;
+            pca9535x20data.outputs = outputs;
+            pca9535x20data.inversions = inversions;
+            pca9535x20data.portconfigs = portconfigs;
+	    pca9535x20Dim->updateService();
+	  }
+          else if( i == 1 )
+          {
+            pca9535x21data.inputs = inputs;
+            pca9535x21data.outputs = outputs;
+            pca9535x21data.inversions = inversions;
+            pca9535x21data.portconfigs = portconfigs;
+	    pca9535x21Dim->updateService();
+	  }
+          else if( i == 2 )
+          {
+            pca9535x22data.inputs = inputs;
+            pca9535x22data.outputs = outputs;
+            pca9535x22data.inversions = inversions;
+            pca9535x22data.portconfigs = portconfigs;
+	    pca9535x22Dim->updateService();
+	  }
+          else if( i == 3 )
+          {
+            pca9535x23data.inputs = inputs;
+            pca9535x23data.outputs = outputs;
+            pca9535x23data.inversions = inversions;
+            pca9535x23data.portconfigs = portconfigs;
+	    pca9535x23Dim->updateService();
+	  }
+          else if( i == 4 )
+          {
+            pca9535x24data.inputs = inputs;
+            pca9535x24data.outputs = outputs;
+            pca9535x24data.inversions = inversions;
+            pca9535x24data.portconfigs = portconfigs;
+	    pca9535x24Dim->updateService();
+	  }
+          else if( i == 5 )
+          {
+            pca9535x25data.inputs = inputs;
+            pca9535x25data.outputs = outputs;
+            pca9535x25data.inversions = inversions;
+            pca9535x25data.portconfigs = portconfigs;
+	    pca9535x25Dim->updateService();
+	  }
+          else if( i == 6 )
+          {
+            pca9535x26data.inputs = inputs;
+            pca9535x26data.outputs = outputs;
+            pca9535x26data.inversions = inversions;
+            pca9535x26data.portconfigs = portconfigs;
+	    pca9535x26Dim->updateService();
+	  }
+          else if( i == 7 )
+          {
+            pca9535x27data.inputs = inputs;
+            pca9535x27data.outputs = outputs;
+            pca9535x27data.inversions = inversions;
+            pca9535x27data.portconfigs = portconfigs;
+	    pca9535x27Dim->updateService();
+	  }
+        }
 #endif
       }
     }

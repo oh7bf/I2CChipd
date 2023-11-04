@@ -73,6 +73,9 @@ class SQLite
     /// Set database insert query.
     void SetInsert(std::string insert_stmt) { this->insert_stmt = insert_stmt; }
 
+    /// Insert name and N integers to database table and return true in success.
+    bool Insert(std::string name, int N, int *data, int & error);
+
     /// Insert name and N doubles to database table and return true in success.
     bool Insert(std::string name, int N, double *data, int & error);
 

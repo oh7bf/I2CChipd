@@ -70,6 +70,16 @@ Bz real,
 temperature real
 );
 
+create table pca9535(
+no integer primary key,
+ts timestamp default current_timestamp,
+name varchar(20),
+inputs integer,
+outputs integer,
+inversions integer,
+portconfigs integer
+);
+
 create table tmp102(
 no integer primary key,
 ts timestamp default current_timestamp,
